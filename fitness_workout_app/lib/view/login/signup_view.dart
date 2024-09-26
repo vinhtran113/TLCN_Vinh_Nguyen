@@ -1,9 +1,12 @@
-import 'package:fitness/common/colo_extension.dart';
-import 'package:fitness/common_widget/round_button.dart';
-import 'package:fitness/common_widget/round_textfield.dart';
-import 'package:fitness/view/login/complete_profile_view.dart';
-import 'package:fitness/view/login/login_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fitness_workout_app/common/colo_extension.dart';
+import 'package:fitness_workout_app/common_widget/round_button.dart';
+import 'package:fitness_workout_app/common_widget/round_textfield.dart';
+import 'package:fitness_workout_app/view/login/complete_profile_view.dart';
+import 'package:fitness_workout_app/view/login/login_view.dart';
+import 'package:fitness_workout_app/view/login/welcome_view.dart';
 import 'package:flutter/material.dart';
+import 'package:fitness_workout_app/services/auth.dart';
 
 class SignUpView extends StatefulWidget {
   const SignUpView({super.key});
@@ -13,7 +16,49 @@ class SignUpView extends StatefulWidget {
 }
 
 class _SignUpViewState extends State<SignUpView> {
+  final TextEditingController fnameController = TextEditingController();
+  final TextEditingController lnameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
   bool isCheck = false;
+
+  @override
+  void dispose() {
+    super.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    fnameController.dispose();
+    lnameController.dispose();
+  }
+
+  void handleSignup() async {
+  try {
+    // Gọi hàm đăng ký và chờ kết quả
+    String res = await AuthService().signupUser(
+        email: emailController.text,
+        password: passwordController.text,
+        fname: fnameController.text,
+        lname: lnameController.text,
+    );
+    
+    if (res == "success") {
+      //Navigator.pushReplacementNamed(context, '/completeProfile');
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const WelcomeView()));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi: $res')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Lỗi xảy ra: $e')),
+    );
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
@@ -40,23 +85,26 @@ class _SignUpViewState extends State<SignUpView> {
                 SizedBox(
                   height: media.width * 0.05,
                 ),
-                const RoundTextField(
+                RoundTextField(
                   hitText: "First Name",
                   icon: "assets/img/user_text.png",
+                  controller: fnameController,
                 ),
                 SizedBox(
                   height: media.width * 0.04,
                 ),
-                const RoundTextField(
+                RoundTextField(
                   hitText: "Last Name",
                   icon: "assets/img/user_text.png",
+                  controller: lnameController,
                 ),
                 SizedBox(
                   height: media.width * 0.04,
                 ),
-                const RoundTextField(
+                RoundTextField(
                   hitText: "Email",
                   icon: "assets/img/email.png",
+                  controller: emailController,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 SizedBox(
@@ -65,6 +113,7 @@ class _SignUpViewState extends State<SignUpView> {
                 RoundTextField(
                   hitText: "Password",
                   icon: "assets/img/lock.png",
+                  controller: passwordController,
                   obscureText: true,
                   rigtIcon: TextButton(
                       onPressed: () {},
@@ -110,9 +159,10 @@ class _SignUpViewState extends State<SignUpView> {
                 SizedBox(
                   height: media.width * 0.4,
                 ),
-                RoundButton(title: "Register", onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const CompleteProfileView()  ));
-                }),
+                RoundButton(
+                    title: "Register",
+                    onPressed: handleSignup
+                ),
                 SizedBox(
                   height: media.width * 0.04,
                 ),

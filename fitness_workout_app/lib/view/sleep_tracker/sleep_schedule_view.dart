@@ -1,5 +1,5 @@
 import 'package:calendar_agenda/calendar_agenda.dart';
-import 'package:fitness/view/sleep_tracker/sleep_add_alarm_view.dart';
+import 'package:fitness_workout_app/view/sleep_tracker/sleep_add_alarm_view.dart';
 
 import 'package:flutter/material.dart';
 import 'package:simple_animation_progress_bar/simple_animation_progress_bar.dart';

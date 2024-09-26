@@ -1,6 +1,6 @@
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
-import 'package:fitness/common_widget/round_button.dart';
-import 'package:fitness/common_widget/workout_row.dart';
+import 'package:fitness_workout_app/common_widget/round_button.dart';
+import 'package:fitness_workout_app/common_widget/workout_row.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_animation_progress_bar/simple_animation_progress_bar.dart';
@@ -131,7 +131,7 @@ class _HomeViewState extends State<HomeView> {
                           style: TextStyle(color: TColor.gray, fontSize: 12),
                         ),
                         Text(
-                          "Stefani Wong",
+                          "Vinh Tran",
                           style: TextStyle(
                               color: TColor.black,
                               fontSize: 20,

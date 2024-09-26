@@ -1,4 +1,4 @@
-import 'package:fitness/view/sleep_tracker/sleep_schedule_view.dart';
+import 'package:fitness_workout_app/view/sleep_tracker/sleep_schedule_view.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 

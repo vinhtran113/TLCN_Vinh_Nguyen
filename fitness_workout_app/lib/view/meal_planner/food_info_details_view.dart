@@ -1,5 +1,5 @@
-import 'package:fitness/common/colo_extension.dart';
-import 'package:fitness/common_widget/round_button.dart';
+import 'package:fitness_workout_app/common/colo_extension.dart';
+import 'package:fitness_workout_app/common_widget/round_button.dart';
 import 'package:flutter/material.dart';
 import 'package:readmore/readmore.dart';
 

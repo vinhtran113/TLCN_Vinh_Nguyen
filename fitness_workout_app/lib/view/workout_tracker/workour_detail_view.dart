@@ -1,8 +1,8 @@
-import 'package:fitness/common/colo_extension.dart';
-import 'package:fitness/common_widget/icon_title_next_row.dart';
-import 'package:fitness/common_widget/round_button.dart';
-import 'package:fitness/view/workout_tracker/exercises_stpe_details.dart';
-import 'package:fitness/view/workout_tracker/workout_schedule_view.dart';
+import 'package:fitness_workout_app/common/colo_extension.dart';
+import 'package:fitness_workout_app/common_widget/icon_title_next_row.dart';
+import 'package:fitness_workout_app/common_widget/round_button.dart';
+import 'package:fitness_workout_app/view/workout_tracker/exercises_stpe_details.dart';
+import 'package:fitness_workout_app/view/workout_tracker/workout_schedule_view.dart';
 import 'package:flutter/material.dart';
 
 import '../../common_widget/exercises_set_section.dart';

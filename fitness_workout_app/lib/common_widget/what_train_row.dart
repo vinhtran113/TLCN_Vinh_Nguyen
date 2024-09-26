@@ -1,4 +1,4 @@
-import 'package:fitness/common_widget/round_button.dart';
+import 'package:fitness_workout_app/common_widget/round_button.dart';
 import 'package:flutter/material.dart';
 
 import '../common/colo_extension.dart';

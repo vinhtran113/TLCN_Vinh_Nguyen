@@ -1,18 +1,19 @@
 import 'package:fitness_workout_app/common/colo_extension.dart';
+import 'package:fitness_workout_app/view/login/reset_password_view.dart';
 import 'package:fitness_workout_app/view/login/what_your_goal_view.dart';
 import 'package:flutter/material.dart';
 
 import '../../common_widget/round_button.dart';
 import '../../common_widget/round_textfield.dart';
 
-class CompleteProfileView extends StatefulWidget {
-  const CompleteProfileView({super.key});
+class EditProfileView extends StatefulWidget {
+  const EditProfileView({super.key});
 
   @override
-  State<CompleteProfileView> createState() => _CompleteProfileViewState();
+  State<EditProfileView> createState() => _EditProfileViewState();
 }
 
-class _CompleteProfileViewState extends State<CompleteProfileView> {
+class _EditProfileViewState extends State<EditProfileView> {
   TextEditingController txtDate = TextEditingController();
 
   @override
@@ -20,30 +21,47 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
     var media = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: TColor.white,
+      appBar: AppBar(
+        backgroundColor: TColor.white,
+        elevation: 0,
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            height: 40,
+            width: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: TColor.lightGray,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Image.asset(
+              "assets/img/black_btn.png",
+              width: 15,
+              height: 15,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(15.0),
             child: Column(
               children: [
-                Image.asset(
-                  "assets/img/complete_profile.png",
-                  width: media.width,
-                  fit: BoxFit.fitWidth,
-                ),
-                SizedBox(
-                  height: media.width * 0.05,
+                Text(
+                  "Hey there,",
+                  style: TextStyle(color: TColor.gray, fontSize: 16),
                 ),
                 Text(
-                  "Let’s complete your profile",
+                  "Edit Your Profile",
                   style: TextStyle(
                       color: TColor.black,
                       fontSize: 20,
                       fontWeight: FontWeight.w700),
-                ),
-                Text(
-                  "It will help us to know more about you!",
-                  style: TextStyle(color: TColor.gray, fontSize: 12),
                 ),
                 SizedBox(
                   height: media.width * 0.05,
@@ -52,6 +70,22 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
                   padding: const EdgeInsets.symmetric(horizontal: 15.0),
                   child: Column(
                     children: [
+                      const RoundTextField(
+                        hitText: "First Name",
+                        icon: "assets/img/user_text.png",
+                        //controller: fnameController,
+                      ),
+                      SizedBox(
+                        height: media.width * 0.04,
+                      ),
+                      const RoundTextField(
+                        hitText: "Last Name",
+                        icon: "assets/img/user_text.png",
+                        //controller: lnameController,
+                      ),
+                      SizedBox(
+                        height: media.width * 0.04,
+                      ),
                       Container(
                         decoration: BoxDecoration(
                             color: TColor.lightGray,
@@ -176,16 +210,28 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
                         ],
                       ),
                       SizedBox(
-                        height: media.width * 0.07,
+                        height: media.width * 0.08,
                       ),
                       RoundButton(
-                          title: "Next >",
+                          title: "Save",
                           onPressed: () {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
                                     const WhatYourGoalView()));
+                          }),
+                      SizedBox(
+                        height: media.width * 0.08,
+                      ),
+                      RoundButton(
+                          title: "Change Password",
+                          onPressed: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                    const ResetPasswordView()));
                           }),
                     ],
                   ),

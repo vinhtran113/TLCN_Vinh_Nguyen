@@ -1,4 +1,4 @@
-import 'package:fitness/common/colo_extension.dart';
+import 'package:fitness_workout_app/common/colo_extension.dart';
 import 'package:flutter/material.dart';
 
 class LatestActivityRow extends StatelessWidget {

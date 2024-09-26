@@ -1,5 +1,5 @@
-import 'package:fitness/common_widget/on_boarding_page.dart';
-import 'package:fitness/view/login/signup_view.dart';
+import 'package:fitness_workout_app/common_widget/on_boarding_page.dart';
+import 'package:fitness_workout_app/view/login/signup_view.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/colo_extension.dart';
