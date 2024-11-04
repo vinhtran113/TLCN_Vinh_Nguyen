@@ -9,9 +9,12 @@ import '../../common/colo_extension.dart';
 import 'activity_tracker_view.dart';
 import 'finished_workout_view.dart';
 import 'notification_view.dart';
+import 'package:fitness_workout_app/model/user_model.dart';
 
 class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+  final UserModel user;
+
+  const HomeView({super.key, required this.user});
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -131,7 +134,7 @@ class _HomeViewState extends State<HomeView> {
                           style: TextStyle(color: TColor.gray, fontSize: 12),
                         ),
                         Text(
-                          "Vinh Tran",
+                          "${widget.user.fname} ${widget.user.lname}",
                           style: TextStyle(
                               color: TColor.black,
                               fontSize: 20,
@@ -252,12 +255,12 @@ class _HomeViewState extends State<HomeView> {
                             fontWeight: FontWeight.w700),
                       ),
                       SizedBox(
-                        width: 70,
-                        height: 25,
+                        width: 80,
+                        height: 30,
                         child: RoundButton(
                           title: "Check",
                           type: RoundButtonType.bgGradient,
-                          fontSize: 12,
+                          fontSize: 14,
                           fontWeight: FontWeight.w400,
                           onPressed: () {
                             Navigator.push(

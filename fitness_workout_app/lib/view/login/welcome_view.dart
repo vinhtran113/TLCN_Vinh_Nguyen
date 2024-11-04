@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/colo_extension.dart';
 import '../../common_widget/round_button.dart';
+import '../../services/auth.dart';
 import '../main_tab/main_tab_view.dart';
+import 'package:fitness_workout_app/model/user_model.dart';
 
 class WelcomeView extends StatefulWidget {
   const WelcomeView({super.key});
@@ -12,6 +15,55 @@ class WelcomeView extends StatefulWidget {
 }
 
 class _WelcomeViewState extends State<WelcomeView> {
+  String lname = "";
+  String fname = "";
+
+  @override
+  void initState() {
+    super.initState();
+    getUserName();
+  }
+
+
+  void getUserName() async {
+    try {
+      // Lấy thông tin người dùng
+      UserModel? user = await AuthService().getUserInfo(FirebaseAuth.instance.currentUser!.uid);
+      setState(() {
+        fname = user!.fname;
+        lname = user.lname;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi xảy ra: $e')),
+      );
+    }
+  }
+
+  void getUserInfo() async {
+    try {
+        // Lấy thông tin người dùng
+        UserModel? user = await AuthService().getUserInfo(FirebaseAuth.instance.currentUser!.uid);
+
+        if (user != null) {
+          // Điều hướng đến HomeView với user
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MainTabView(user: user),
+            ),
+          );
+        } else{
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Có lỗi xảy ra')),
+          );
+        }
+      } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi xảy ra: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +90,7 @@ class _WelcomeViewState extends State<WelcomeView> {
                 height: media.width * 0.1,
               ),
               Text(
-                "Welcome, Stefani",
+                "Welcome, ${fname} ${lname}",
                 style: TextStyle(
                     color: TColor.black,
                     fontSize: 20,
@@ -53,12 +105,8 @@ class _WelcomeViewState extends State<WelcomeView> {
 
               RoundButton(
                   title: "Go To Home",
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const MainTabView()));
-                  }),
+                  onPressed: getUserInfo
+              ),
 
             ],
           ),

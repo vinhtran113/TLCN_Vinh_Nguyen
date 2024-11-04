@@ -1,4 +1,5 @@
 import 'package:fitness_workout_app/view/login/login_view.dart';
+import 'package:fitness_workout_app/view/profile/change_goal_view.dart';
 import 'package:fitness_workout_app/view/profile/edit_profile_view.dart';
 import 'package:flutter/material.dart';
 
@@ -7,45 +8,53 @@ import '../../common_widget/round_button.dart';
 import '../../common_widget/setting_row.dart';
 import '../../common_widget/title_subtitle_cell.dart';
 import 'package:animated_toggle_switch/animated_toggle_switch.dart';
-import 'package:fitness_workout_app/services/auth.dart';
+import 'package:fitness_workout_app/model/user_model.dart';
+
+import '../../services/auth.dart';
+import '../setting/PrivacyPolicy_and_TermOfUse_View.dart';
+import '../setting/select_language_view.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({super.key});
-
+  final UserModel user;
+  const ProfileView({super.key, required this.user});
   @override
   State<ProfileView> createState() => _ProfileViewState();
 }
 
 class _ProfileViewState extends State<ProfileView> {
   bool positive = false;
+  bool darkmode = false;
 
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Xác nhận"),
+          content: Text("Bạn có chắc chắn muốn đăng xuất?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text("Không"),
+            ),
+            TextButton(
+              onPressed: () async {
+                await AuthService().logOut();
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const LoginView()));
+              },
+              child: Text("Có"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-
-  List accountArr = [
-    {
-      "image": "assets/img/p_activity.png",
-      "name": "Activity History",
-      "tag": "1"
-    },
-    {
-      "image": "assets/img/p_workout.png",
-      "name": "Workout Progress",
-      "tag": "2"
-    }
-  ];
-
-  List settingArr = [
-    {"image": "assets/img/p_contact.png", "name": "Language", "tag": "3"},
-  ];
-
-  List otherArr = [
-    {"image": "assets/img/p_contact.png", "name": "Contact Us", "tag": "4"},
-    {"image": "assets/img/p_privacy.png", "name": "Privacy Policy", "tag": "5"},
-
-  ];
-  List outArr = [
-    {"image": "assets/img/p_setting.png", "name": "Logout", "tag": "6"},
-  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,31 +63,12 @@ class _ProfileViewState extends State<ProfileView> {
         centerTitle: true,
         elevation: 0,
         leadingWidth: 0,
+        leading: const SizedBox(),
         title: Text(
           "Profile",
           style: TextStyle(
-              color: TColor.black, fontSize: 16, fontWeight: FontWeight.w700),
+              color: TColor.black, fontSize: 22, fontWeight: FontWeight.w700),
         ),
-        actions: [
-          InkWell(
-            onTap: () {},
-            child: Container(
-              margin: const EdgeInsets.all(8),
-              height: 40,
-              width: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                  color: TColor.lightGray,
-                  borderRadius: BorderRadius.circular(10)),
-              child: Image.asset(
-                "assets/img/more_btn.png",
-                width: 15,
-                height: 15,
-                fit: BoxFit.contain,
-              ),
-            ),
-          )
-        ],
       ),
       backgroundColor: TColor.white,
       body: SingleChildScrollView(
@@ -91,7 +81,14 @@ class _ProfileViewState extends State<ProfileView> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(30),
-                    child: Image.asset(
+                    child: widget.user.pic.isNotEmpty
+                        ? Image.network(
+                      widget.user.pic,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    )
+                        : Image.asset(
                       "assets/img/u2.png",
                       width: 50,
                       height: 50,
@@ -106,20 +103,13 @@ class _ProfileViewState extends State<ProfileView> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Vinh Tran",
+                          "${widget.user.fname} ${widget.user.lname}",
                           style: TextStyle(
                             color: TColor.black,
-                            fontSize: 14,
+                            fontSize: 18,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        Text(
-                          "Lose a Fat Program",
-                          style: TextStyle(
-                            color: TColor.gray,
-                            fontSize: 12,
-                          ),
-                        )
                       ],
                     ),
                   ),
@@ -135,7 +125,7 @@ class _ProfileViewState extends State<ProfileView> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const EditProfileView()));
+                                builder: (context) => EditProfileView(user: widget.user)));
                       },
                     ),
                   )
@@ -144,29 +134,29 @@ class _ProfileViewState extends State<ProfileView> {
               const SizedBox(
                 height: 15,
               ),
-              const Row(
+              Row(
                 children: [
                   Expanded(
                     child: TitleSubtitleCell(
-                      title: "180cm",
+                      title: "${widget.user.height}cm",
                       subtitle: "Height",
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 15,
                   ),
                   Expanded(
                     child: TitleSubtitleCell(
-                      title: "65kg",
+                      title: "${widget.user.weight}kg",
                       subtitle: "Weight",
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     width: 15,
                   ),
                   Expanded(
                     child: TitleSubtitleCell(
-                      title: "22yo",
+                      title: "${widget.user.getAge()}yo",
                       subtitle: "Age",
                     ),
                   ),
@@ -198,19 +188,34 @@ class _ProfileViewState extends State<ProfileView> {
                     const SizedBox(
                       height: 8,
                     ),
-                    ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: accountArr.length,
-                      itemBuilder: (context, index) {
-                        var iObj = accountArr[index] as Map? ?? {};
-                        return SettingRow(
-                          icon: iObj["image"].toString(),
-                          title: iObj["name"].toString(),
-                          onPressed: () {},
+                    SettingRow(
+                      icon: "assets/img/p_activity.png",
+                      title: "Activity History",
+                      onPressed: () {
+                        // xử lý sự kiện khi ấn vào "Activity History"\
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    SettingRow(
+                      icon: "assets/img/p_workout.png",
+                      title: "Workout Progress",
+                      onPressed: () {
+
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    SettingRow(
+                      icon: "assets/img/p_workout.png",
+                      title: "Change Goal",
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ChangeGoalView(),
+                          ),
                         );
                       },
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -271,7 +276,7 @@ class _ProfileViewState extends State<ProfileView> {
                               iconBuilder: (context, local, global) {
                                 return const SizedBox();
                               },
-                              iconsTappable: false,
+                              iconsTappable: true,
                               wrapperBuilder: (context, global, child) {
                                 return Stack(
                                   alignment: Alignment.center,
@@ -284,7 +289,7 @@ class _ProfileViewState extends State<ProfileView> {
                                         child: DecoratedBox(
                                           decoration: BoxDecoration(
                                             gradient: LinearGradient(
-                                                colors: TColor.secondaryG),
+                                                colors: TColor.thirdG),
                                             borderRadius:
                                             const BorderRadius.all(
                                                 Radius.circular(50.0)),
@@ -324,7 +329,7 @@ class _ProfileViewState extends State<ProfileView> {
                       child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Image.asset("assets/img/p_notification.png",
+                            Image.asset("assets/img/night_mode.png",
                                 height: 15, width: 15, fit: BoxFit.contain),
                             const SizedBox(
                               width: 15,
@@ -339,18 +344,18 @@ class _ProfileViewState extends State<ProfileView> {
                               ),
                             ),
                             CustomAnimatedToggleSwitch<bool>(
-                              current: positive,
+                              current: darkmode,
                               values: [false, true],
 
                               indicatorSize: Size.square(30.0),
                               animationDuration:
                               const Duration(milliseconds: 200),
                               animationCurve: Curves.linear,
-                              onChanged: (b) => setState(() => positive = b),
+                              onChanged: (b) => setState(() => darkmode = b),
                               iconBuilder: (context, local, global) {
                                 return const SizedBox();
                               },
-                              iconsTappable: false,
+                              iconsTappable: true,
                               wrapperBuilder: (context, global, child) {
                                 return Stack(
                                   alignment: Alignment.center,
@@ -363,7 +368,7 @@ class _ProfileViewState extends State<ProfileView> {
                                         child: DecoratedBox(
                                           decoration: BoxDecoration(
                                             gradient: LinearGradient(
-                                                colors: TColor.secondaryG),
+                                                colors: TColor.thirdG),
                                             borderRadius:
                                             const BorderRadius.all(
                                                 Radius.circular(50.0)),
@@ -398,19 +403,17 @@ class _ProfileViewState extends State<ProfileView> {
                     const SizedBox(
                       height: 8,
                     ),
-                    ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: settingArr.length,
-                      itemBuilder: (context, index) {
-                        var iObj = settingArr[index] as Map? ?? {};
-                        return SettingRow(
-                          icon: iObj["image"].toString(),
-                          title: iObj["name"].toString(),
-                          onPressed: () {},
-                        );
+                    SettingRow(
+                      icon: "assets/img/language.png",
+                      title: "Language",
+                      onPressed: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                const SelectLanguageView()));
                       },
-                    )
+                    ),
                   ],
 
                 ),
@@ -441,42 +444,35 @@ class _ProfileViewState extends State<ProfileView> {
                     const SizedBox(
                       height: 8,
                     ),
-                    ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      itemCount: otherArr.length,
-                      itemBuilder: (context, index) {
-                        var iObj = otherArr[index] as Map? ?? {};
-                        return SettingRow(
-                          icon: iObj["image"].toString(),
-                          title: iObj["name"].toString(),
-                          onPressed: AuthService().logOut,
-                        );
+                    SettingRow(
+                      icon: "assets/img/p_contact.png",
+                      title: "Contact Us",
+                      onPressed: () {
+                        // xử lý sự kiện khi ấn vào
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    SettingRow(
+                      icon: "assets/img/p_privacy.png",
+                      title: "Privacy Policy",
+                      onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                  const PrivacyPolicyandTermOfUseView()));
                       },
                     ),
                     const SizedBox(
-                      height: 5,
+                      height: 8,
                     ),
-                    ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      itemCount: outArr.length,
-                      itemBuilder: (context, index) {
-                        var iObj = outArr[index] as Map? ?? {};
-                        return SettingRow(
-                          icon: iObj["image"].toString(),
-                          title: iObj["name"].toString(),
-                          onPressed:() {
-                        Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                        builder: (context) => const LoginView()));
-                        },
-                        );
+                    SettingRow(
+                      icon: "assets/img/logout.png",
+                      title: "Logout",
+                      onPressed: () {
+                        _showLogoutDialog(context);
                       },
-                    )
+                    ),
                   ],
                 ),
               )

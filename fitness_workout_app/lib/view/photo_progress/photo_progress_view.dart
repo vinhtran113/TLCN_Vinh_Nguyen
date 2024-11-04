@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import '../../common/colo_extension.dart';
 import '../../common_widget/round_button.dart';
 import 'comparison_view.dart';
+import 'package:fitness_workout_app/model/user_model.dart';
 
 class PhotoProgressView extends StatefulWidget {
-  const PhotoProgressView({super.key});
+  final UserModel user;
+
+  const PhotoProgressView({super.key, required this.user});
 
   @override
   State<PhotoProgressView> createState() => _PhotoProgressViewState();
@@ -46,28 +49,8 @@ class _PhotoProgressViewState extends State<PhotoProgressView> {
         title: Text(
           "Progress Photo",
           style: TextStyle(
-              color: TColor.black, fontSize: 16, fontWeight: FontWeight.w700),
+              color: TColor.black, fontSize: 22, fontWeight: FontWeight.w700),
         ),
-        actions: [
-          InkWell(
-            onTap: () {},
-            child: Container(
-              margin: const EdgeInsets.all(8),
-              height: 40,
-              width: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                  color: TColor.lightGray,
-                  borderRadius: BorderRadius.circular(10)),
-              child: Image.asset(
-                "assets/img/more_btn.png",
-                width: 15,
-                height: 15,
-                fit: BoxFit.contain,
-              ),
-            ),
-          )
-        ],
       ),
       backgroundColor: TColor.white,
       body: SingleChildScrollView(
