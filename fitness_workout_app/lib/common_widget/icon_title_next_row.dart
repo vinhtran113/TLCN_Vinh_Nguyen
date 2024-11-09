@@ -38,15 +38,15 @@ class IconTitleNextRow extends StatelessWidget {
             Expanded(
               child: Text(
                 title ,
-                style: TextStyle(color: TColor.gray, fontSize: 14),
+                style: TextStyle(color: TColor.gray, fontSize: 12),
               ),
             ),
             SizedBox(
               width: 120,
               child: Text(
-                time  ,
+                time,
                 textAlign: TextAlign.right,
-                style: TextStyle(color: TColor.gray, fontSize: 14),
+                style: TextStyle(color: TColor.gray, fontSize: 12),
               ),
             ),
             const SizedBox(width: 8),

@@ -1,16 +1,16 @@
 import 'package:fitness_workout_app/common/colo_extension.dart';
+import 'package:fitness_workout_app/common_widget/select_train_row.dart';
 import 'package:flutter/material.dart';
-import '../../common_widget/what_train_row.dart';
 import '../../services/workout_tracker.dart';
 
-class AllWorkoutView extends StatefulWidget {
-  const AllWorkoutView({super.key});
+class SelectWorkoutView extends StatefulWidget {
+  const SelectWorkoutView({super.key});
 
   @override
-  State<AllWorkoutView> createState() => _AllWorkoutViewState();
+  State<SelectWorkoutView> createState() => _SelectWorkoutViewState();
 }
 
-class _AllWorkoutViewState extends State<AllWorkoutView> {
+class _SelectWorkoutViewState extends State<SelectWorkoutView> {
   final WorkoutService _workoutService = WorkoutService();
   List<Map<String, dynamic>> whatArr = [];
 
@@ -27,13 +27,11 @@ class _AllWorkoutViewState extends State<AllWorkoutView> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
     return Container(
-      decoration:
-      BoxDecoration(gradient: LinearGradient(colors: TColor.primaryG)),
+      decoration: BoxDecoration(gradient: LinearGradient(colors: TColor.primaryG)),
       child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
@@ -41,7 +39,6 @@ class _AllWorkoutViewState extends State<AllWorkoutView> {
               backgroundColor: Colors.transparent,
               centerTitle: true,
               elevation: 0,
-              // pinned: true,
               leading: InkWell(
                 onTap: () {
                   Navigator.pop(context);
@@ -83,9 +80,7 @@ class _AllWorkoutViewState extends State<AllWorkoutView> {
             body: SingleChildScrollView(
               child: Column(
                 children: [
-                  const SizedBox(
-                    height: 10,
-                  ),
+                  const SizedBox(height: 10),
                   ListView.builder(
                       padding: EdgeInsets.zero,
                       physics: const NeverScrollableScrollPhysics(),
@@ -93,12 +88,14 @@ class _AllWorkoutViewState extends State<AllWorkoutView> {
                       itemCount: whatArr.length,
                       itemBuilder: (context, index) {
                         var wObj = whatArr[index] as Map? ?? {};
-                        return InkWell(
-                            child:  WhatTrainRow(wObj: wObj) );
+                        return SelectTrainRow(
+                          wObj: wObj,
+                          onSelect: (selectedTitle) {
+                            Navigator.pop(context, selectedTitle);
+                          },
+                        );
                       }),
-                  SizedBox(
-                    height: media.width * 0.1,
-                  ),
+                  SizedBox(height: media.width * 0.1),
                 ],
               ),
             ),
