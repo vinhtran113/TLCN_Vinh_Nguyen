@@ -1,13 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_workout_app/common/colo_extension.dart';
 import 'package:fitness_workout_app/common_widget/icon_title_next_row.dart';
 import 'package:fitness_workout_app/common_widget/round_button.dart';
-import 'package:fitness_workout_app/view/workout_tracker/exercises_step_details.dart';
 import 'package:fitness_workout_app/view/workout_tracker/ready_view.dart';
 import 'package:fitness_workout_app/view/workout_tracker/workout_schedule_view.dart';
 import 'package:flutter/material.dart';
 
 import '../../common_widget/exercises_row.dart';
-import '../../common_widget/exercises_set_section.dart';
 import '../../model/exercise_model.dart';
 import '../../services/workout_tracker.dart';
 
@@ -20,24 +19,9 @@ class WorkoutDetailView extends StatefulWidget {
 }
 
 class _WorkoutDetailViewState extends State<WorkoutDetailView> {
-  final TextEditingController selectedDifficulity = TextEditingController();
+  final TextEditingController selectedDifficulty = TextEditingController();
   final WorkoutService _workoutService = WorkoutService();
   List<Map<String, dynamic>> youArr = [];
-  String selectedDiffDefault = "Beginner";
-
-  List latestArr = [
-    {
-      "image": "assets/img/Workout1.png",
-      "title": "Full body Workout",
-      "time": "Today, 03:00pm"
-    },
-    {
-      "image": "assets/img/Workout2.png",
-      "title": "Upperbody Workout",
-      "time": "June 05, 02:00pm"
-    },
-  ];
-
   List<Exercise> exercisesArr = [];
   Map<String, String> listInfo = {};
 
@@ -45,7 +29,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
   void initState() {
     super.initState();
     _loadToolOfCategoryWorkout();
-    selectedDifficulity.text = selectedDiffDefault;
+    selectedDifficulty.text = widget.dObj["difficulty"];
     _loadExercises();
     _loadCaloAndTime();
   }
@@ -63,7 +47,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
     String categoryId = widget.dObj["id"].toString();
     Map<String, String> list = await _workoutService.fetchTimeAndCalo(
       categoryId: categoryId,
-      difficulty: selectedDifficulity.text.trim(),
+      difficulty: selectedDifficulty.text.trim(),
     );
     setState(() {
       listInfo = list;
@@ -75,7 +59,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
     List<Exercise> exercises = await _workoutService
         .fetchExercisesByCategoryAndDifficulty(
       categoryId: categoryId,
-      difficulty: selectedDifficulity.text.trim(),
+      difficulty: selectedDifficulty.text.trim(),
     );
     setState(() {
       exercisesArr = exercises;
@@ -98,7 +82,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                 ),
                 onTap: () {
                   setState(() {
-                    selectedDifficulity.text = difficulty;
+                    selectedDifficulty.text = difficulty;
                     _loadExercises();
                     _loadCaloAndTime();
                   });
@@ -109,6 +93,28 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
           ),
         );
       },
+    );
+  }
+
+  void _createHistory() async {
+    // Tạo một WorkoutHistory rỗng
+    String historyId = await _workoutService.createEmptyWorkoutHistory(
+      uid: FirebaseAuth.instance.currentUser!.uid,
+      idCate: widget.dObj["id"].toString(),
+      exercisesArr: exercisesArr,
+      difficulty: selectedDifficulty.text,
+    );
+
+    // Chuyển sang trang ReadyView
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReadyView(
+          exercises: exercisesArr,
+          historyId: historyId,
+          index: 0,// Truyền Id để cập nhật sau
+        ),
+      ),
     );
   }
 
@@ -279,7 +285,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                               SizedBox(
                                 width: 120,
                                 child: Text(
-                                  selectedDifficulity.text,
+                                  selectedDifficulty.text,
                                   textAlign: TextAlign.right,
                                   style: TextStyle(
                                       color: TColor.gray, fontSize: 12),
@@ -452,15 +458,9 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      RoundButton(title: "Start Workout", onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ReadyView(exercises: exercisesArr),
-                          ),
-                        );
-                      })
+                      RoundButton(title: "Start Workout",
+                          onPressed: _createHistory
+                      )
                     ],
                   ),
                 )
