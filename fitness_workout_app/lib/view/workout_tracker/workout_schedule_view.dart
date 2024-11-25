@@ -455,20 +455,20 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
       ),
       floatingActionButton: InkWell(
         onTap: () async {
+          //print('Gio hien tai: $_selectedDateAppBBar');
+          DateTime now = DateTime.now();
+          DateTime startOfDay = DateTime(now.year, now.month, now.day);
+          //print('Gio kiem tra: $startOfDay');
           // Kiểm tra nếu ngày được chọn là quá khứ so với thời gian hiện tại
-          if (_selectedDateAppBBar.isBefore(
-              DateTime.now().subtract(Duration(hours: DateTime
-                  .now()
-                  .hour)))) {
+          if (_selectedDateAppBBar.isBefore(startOfDay)) {
             return;
           }
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  AddScheduleView(
-                    date: _selectedDateAppBBar,
-                  ),
+              builder: (context) => AddScheduleView(
+                date: _selectedDateAppBBar,
+              ),
             ),
           );
           if (result == true) {

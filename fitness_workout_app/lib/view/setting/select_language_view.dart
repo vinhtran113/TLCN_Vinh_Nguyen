@@ -22,7 +22,7 @@ class _SelectLanguageViewState extends State<SelectLanguageView> {
     var media = MediaQuery.sizeOf(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: TColor.secondaryColor1,
+        backgroundColor: TColor.white,
         centerTitle: true,
         elevation: 0.1,
         leading: IconButton(
@@ -30,7 +30,7 @@ class _SelectLanguageViewState extends State<SelectLanguageView> {
               Navigator.pop(context);
             },
             icon: Image.asset(
-              "assets/img/black_white.png",
+              "assets/img/black_btn.png",
               width: 25,
               height: 25,
             )),
@@ -40,6 +40,7 @@ class _SelectLanguageViewState extends State<SelectLanguageView> {
               color: TColor.white, fontSize: 20, fontWeight: FontWeight.w700),
         ),
       ),
+      backgroundColor: TColor.white,
       body: ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           itemBuilder: (context, index) {
