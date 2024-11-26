@@ -16,6 +16,7 @@ import '../../services/auth.dart';
 import '../../services/notification.dart';
 import '../setting/ContactUs_View.dart';
 import '../setting/PrivacyPolicy_and_TermOfUse_View.dart';
+import '../setting/Statistics_Chart_View.dart';
 import '../setting/select_language_view.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -248,7 +249,12 @@ class _ProfileViewState extends State<ProfileView> {
                       icon: "assets/img/p_workout.png",
                       title: "Workout Progress",
                       onPressed: () {
-
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => StatisticsChartView(),
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(height: 8),

@@ -1,7 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
-import '../model/exercise_model.dart';
-import '../model/step_exercise_model.dart';
 import '../model/tip_model.dart';
 
 class TipsService {
@@ -22,7 +19,6 @@ class TipsService {
     } catch (e) {
       print("Error fetching Stips: $e");
     }
-    print("Error fetching Stips: $tipsList");
     return tipsList;
   }
 
