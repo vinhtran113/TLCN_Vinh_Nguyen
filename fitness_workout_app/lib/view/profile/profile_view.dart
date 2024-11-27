@@ -72,25 +72,30 @@ class _ProfileViewState extends State<ProfileView> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Xác nhận"),
-          content: Text("Bạn có chắc chắn muốn đăng xuất?"),
+          title: const Text("Xác nhận"),
+          content: const Text("Bạn có chắc chắn muốn đăng xuất?"),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text("Không"),
+              child: const Text("Không"),
             ),
             TextButton(
               onPressed: () async {
+                // Xóa thông báo và đăng xuất
                 await _localNotifications.cancelAll();
                 await AuthService().logOut();
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const LoginView()));
+
+                // Điều hướng đến LoginView và xóa lịch sử
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const LoginView(),
+                  ),
+                      (route) => false, // Xóa toàn bộ route cũ
+                );
               },
-              child: Text("Có"),
+              child: const Text("Có"),
             ),
           ],
         );
