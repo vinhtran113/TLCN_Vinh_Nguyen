@@ -8,13 +8,14 @@ class ReadyView extends StatelessWidget {
   final List<Exercise> exercises;
   final String historyId;
   final int index;
+  final String diff;
 
-  const ReadyView({Key? key, required this.exercises, required this.historyId, required this.index}) : super(key: key);
+  const ReadyView({Key? key, required this.exercises, required this.historyId, required this.index, required this.diff}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<TimerModel>(
-      create: (context) => TimerModel(context, exercises, historyId, index), // Truyền exercises vào TimerModel
+      create: (context) => TimerModel(context, exercises, historyId, index, diff),
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Center(
@@ -63,8 +64,9 @@ class TimerModel with ChangeNotifier {
   final String historyId;
   final int index;
   int countdown = 5;
+  final String diff;
 
-  TimerModel(context, this.exercises, this.historyId, this.index) {
+  TimerModel(context, this.exercises, this.historyId, this.index, this.diff) {
     MyTimer(context);
   }
 
@@ -79,7 +81,8 @@ class TimerModel with ChangeNotifier {
             builder: (context) => WorkOutDet(
               exercises: exercises, // Truyền danh sách exercises
               index: index,
-              historyId: historyId,// Truyền chỉ số ban đầu
+              historyId: historyId,
+              diff: diff,// Truyền chỉ số ban đầu
             ),
           ),
         );

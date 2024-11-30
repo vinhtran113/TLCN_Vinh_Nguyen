@@ -28,25 +28,25 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
   @override
   void initState() {
     super.initState();
-    _loadToolOfCategoryWorkout();
+    _loadToolsForWorkout();
     selectedDifficulty.text = widget.dObj["difficulty"];
     _loadExercises();
     _loadCaloAndTime();
   }
 
-  void _loadToolOfCategoryWorkout() async {
-    String categoryId = widget.dObj["id"].toString();
+  void _loadToolsForWorkout() async {
+    String workoutId = widget.dObj["id"].toString();
     List<Map<String, dynamic>> tools = await _workoutService
-        .fetchToolsForCategory(categoryId);
+        .fetchToolsForWorkout(workoutId);
     setState(() {
       youArr = tools;
     });
   }
 
   void _loadCaloAndTime() async {
-    String categoryId = widget.dObj["id"].toString();
+    String workoutId = widget.dObj["id"].toString();
     Map<String, String> list = await _workoutService.fetchTimeAndCalo(
-      categoryId: categoryId,
+      categoryId: workoutId,
       difficulty: selectedDifficulty.text.trim(),
     );
     setState(() {
@@ -55,11 +55,10 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
   }
 
   void _loadExercises() async {
-    String categoryId = widget.dObj["id"].toString();
+    String workoutId = widget.dObj["id"].toString();
     List<Exercise> exercises = await _workoutService
-        .fetchExercisesByCategoryAndDifficulty(
-      categoryId: categoryId,
-      difficulty: selectedDifficulty.text.trim(),
+        .fetchExercisesFromWorkout(
+      workoutId: workoutId,
     );
     setState(() {
       exercisesArr = exercises;
@@ -112,7 +111,8 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
         builder: (context) => ReadyView(
           exercises: exercisesArr,
           historyId: historyId,
-          index: 0,// Truyền Id để cập nhật sau
+          index: 0,
+          diff: selectedDifficulty.text.trim(),// Truyền Id để cập nhật sau
         ),
       ),
     );
@@ -444,6 +444,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                           Exercise eObj = exercisesArr[index];
                           return ExercisesRow(
                             eObj: eObj,
+                            diff: selectedDifficulty.text.trim(),
                           );
                         },
                       ),

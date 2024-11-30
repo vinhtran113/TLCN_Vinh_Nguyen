@@ -1,4 +1,5 @@
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
+import 'package:fitness_workout_app/model/exercise_model.dart';
 import 'package:fitness_workout_app/model/step_exercise_model.dart';
 import 'package:flutter/material.dart';
 import 'package:readmore/readmore.dart';
@@ -6,9 +7,10 @@ import 'package:readmore/readmore.dart';
 import '../common/colo_extension.dart';
 
 class StepDetailRow extends StatelessWidget {
-  final StepExercise sObj;
+  final StepExerciseModel? sObj;
+  final int index;
   final bool isLast;
-  const StepDetailRow({super.key, required this.sObj, this.isLast = false});
+  const StepDetailRow({super.key, required this.sObj, required this.index, this.isLast = false});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +21,7 @@ class StepDetailRow extends StatelessWidget {
         SizedBox(
           width: 25,
           child: Text(
-            sObj.step.toString(),
+            "(${(index + 1).toString()})",
             style: TextStyle(
               color: TColor.secondaryColor1,
               fontSize: 14,
@@ -65,14 +67,14 @@ class StepDetailRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                sObj.title.toString(),
+                sObj!.title.toString(),
                 style: TextStyle(
                   color: TColor.black,
                   fontSize: 14,
                 ),
               ),
               ReadMoreText(
-                sObj.detail.toString(),
+                sObj!.detail.toString(),
                 trimLines: 3,
                 colorClickableText: TColor.black,
                 trimMode: TrimMode.Line,

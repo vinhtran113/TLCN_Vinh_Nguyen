@@ -30,7 +30,7 @@ class _SelectWorkoutViewState extends State<SelectWorkoutView> {
   }
 
   Future<void> _loadCategoryWorkouts() async {
-    List<Map<String, dynamic>> workouts = await _workoutService.fetchCategoryWorkoutList();
+    List<Map<String, dynamic>> workouts = await _workoutService.fetchWorkoutList();
     setState(() {
       whatArr = workouts;
       filteredArr = workouts;
@@ -42,7 +42,7 @@ class _SelectWorkoutViewState extends State<SelectWorkoutView> {
     setState(() {
       filteredArr = whatArr.where((workout) {
         // Tìm kiếm dựa trên tên hoặc các thuộc tính khác
-        return workout["title"].toLowerCase().contains(query); // Giả sử mỗi phần tử có trường 'name'
+        return workout["title"].toLowerCase().contains(query);
       }).toList();
     });
   }

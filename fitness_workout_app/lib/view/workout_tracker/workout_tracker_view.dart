@@ -46,7 +46,7 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
     if (user != null) {
       String level = user.level;
       List<Map<String, dynamic>> workouts =
-      await _workoutService.fetchCategoryWorkoutWithLevelList(level: level);
+      await _workoutService.fetchWorkoutsByLevel(level: level);
       setState(() {
         whatArr = workouts;
       });

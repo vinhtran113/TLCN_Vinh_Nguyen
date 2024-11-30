@@ -6,7 +6,8 @@ import '../view/workout_tracker/exercises_step_details.dart';
 
 class ExercisesRow extends StatelessWidget {
   final Exercise eObj;
-  const ExercisesRow({super.key, required this.eObj});
+  final String diff;
+  const ExercisesRow({super.key, required this.eObj, required this.diff});
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +34,9 @@ class ExercisesRow extends StatelessWidget {
                     style: TextStyle(color: TColor.black, fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   Text(
-                    eObj.rep == 0
-                        ? "${eObj.time} sec | ${eObj.calo} cal" // Hiển thị thời gian và calo nếu rep là 0
-                        : "${eObj.rep}x | ${eObj.calo} cal", // Hiển thị rep và calo nếu rep khác 0
+                    eObj.difficulty[diff]?.rep == 0
+                        ? "${eObj.difficulty[diff]?.time} sec | ${eObj.difficulty[diff]?.calo} KCal" // Hiển thị thời gian và calo nếu rep là 0
+                        : "${eObj.difficulty[diff]?.rep}x | ${eObj.difficulty[diff]?.calo} KCal", // Hiển thị rep và calo nếu rep khác 0
                     style: TextStyle(color: TColor.gray, fontSize: 12),
                   ),
                 ],
@@ -45,7 +46,10 @@ class ExercisesRow extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ExercisesStepDetails(eObj: eObj), // Truyền eObj vào trang chi tiết
+                  builder: (context) => ExercisesStepDetails(
+                    eObj: eObj,
+                    diff: diff,
+                  ),
                 ),
               );
             },

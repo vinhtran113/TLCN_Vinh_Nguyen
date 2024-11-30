@@ -11,7 +11,8 @@ import '../../services/workout_tracker.dart';
 
 class ExercisesStepDetails extends StatefulWidget {
   final Exercise eObj;
-  const ExercisesStepDetails({super.key, required this.eObj});
+  final String diff;
+  const ExercisesStepDetails({super.key, required this.eObj, required this.diff});
 
   @override
   State<ExercisesStepDetails> createState() => _ExercisesStepDetailsState();
@@ -19,14 +20,12 @@ class ExercisesStepDetails extends StatefulWidget {
 
 class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
   final WorkoutService _workoutService = WorkoutService();
-  List<StepExercise> stepArr = [];
   late VideoPlayerController _controller;
   bool _isPlaying = false;
 
   @override
   void initState() {
     super.initState();
-    _loadStepExercises();
     _controller = VideoPlayerController.network(widget.eObj.video)
       ..initialize().then((_) {
         setState(() {}); // Cập nhật UI sau khi video đã sẵn sàng
@@ -46,16 +45,6 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
   void dispose() {
     _controller.dispose();
     super.dispose();
-  }
-
-  void _loadStepExercises() async {
-    String name = widget.eObj.name.toString();
-    List<StepExercise> step_exercises = await _workoutService.fetchStepExercises(
-      name: name,
-    );
-    setState(() {
-      stepArr = step_exercises;
-    });
   }
 
   @override
@@ -149,7 +138,7 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
                 height: 4,
               ),
               Text(
-                "${widget.eObj.difficulty} | ${widget.eObj.calo} Calories Burn",
+                "${widget.diff.toString()} | ${widget.eObj.difficulty[widget.diff]?.calo} Calories Burn",
                 style: TextStyle(
                   color: TColor.gray,
                   fontSize: 12,
@@ -198,7 +187,7 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
                   TextButton(
                     onPressed: () {},
                     child: Text(
-                      "${stepArr.length} Steps",
+                      "${widget.eObj.steps.length} Steps",
                       style: TextStyle(color: TColor.gray, fontSize: 12),
                     ),
                   )
@@ -207,13 +196,14 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
               ListView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
-                itemCount: stepArr.length,
-                itemBuilder: ((context, index) {
-                  StepExercise sObj = stepArr[index];
-
+                itemCount: widget.eObj.steps.length,
+                itemBuilder: ((context, index ) {
+                  var sObj = widget.eObj.steps[index + 1];
+                  print("In cac buoc: $sObj"); // Ghi log danh sách steps để kiểm tra
                   return StepDetailRow(
                     sObj: sObj,
-                    isLast: stepArr.last == sObj,
+                    index: index,
+                    isLast: widget.eObj.steps.length == index + 1 ,
                   );
                 }),
               ),

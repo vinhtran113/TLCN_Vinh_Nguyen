@@ -9,18 +9,20 @@ class BreakTime extends StatelessWidget {
   final List<Exercise> exercises;
   final int index;
   final String historyId;
+  final String diff;
 
   const BreakTime({
     Key? key,
     required this.exercises,
     required this.index,
     required this.historyId,
+    required this.diff,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<TimerModelSec>(
-      create: (context) => TimerModelSec(context, 10, exercises, index, historyId),
+      create: (context) => TimerModelSec(context, 10, exercises, index, historyId, diff),
       child: Scaffold(
         body: Container(
           height: MediaQuery.of(context).size.height,
@@ -81,6 +83,7 @@ class BreakTime extends StatelessWidget {
                                   exercises: exercises,
                                   index: index - 1,
                                   historyId: historyId,
+                                  diff: diff,
                                 ),
                               ),
                             );
@@ -107,6 +110,7 @@ class BreakTime extends StatelessWidget {
                                   exercises: exercises,
                                   index: index,
                                   historyId: historyId,
+                                  diff: diff,
                                 ),
                               ),
                             );
@@ -146,12 +150,13 @@ class TimerModelSec with ChangeNotifier {
   bool isPassed = false;
   Timer? _timer;
 
-  TimerModelSec(BuildContext context, int initialTime, List<Exercise> exercises, int index, String historyId)
+
+  TimerModelSec(BuildContext context, int initialTime, List<Exercise> exercises, int index, String historyId, String diff)
       : countdown = initialTime {
-    _startTimer(context, exercises, index, historyId);
+    _startTimer(context, exercises, index, historyId, diff);
   }
 
-  void _startTimer(BuildContext context, List<Exercise> exercises, int index, String historyId) {
+  void _startTimer(BuildContext context, List<Exercise> exercises, int index, String historyId, String diff) {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (!visible && !isPassed) { // Đếm ngược nếu không tạm dừng hoặc chuyển bài
         countdown--;
@@ -165,7 +170,7 @@ class TimerModelSec with ChangeNotifier {
             MaterialPageRoute(
               builder: (context) =>
                   WorkOutDet(
-                    exercises: exercises, index: index, historyId: historyId,),
+                    exercises: exercises, index: index, historyId: historyId, diff: diff,),
             ),
           );
         }

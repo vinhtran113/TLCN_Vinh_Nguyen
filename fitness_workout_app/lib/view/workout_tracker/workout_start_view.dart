@@ -12,12 +12,14 @@ class WorkOutDet extends StatelessWidget {
   final List<Exercise> exercises;
   final int index;
   final String historyId;
+  final String diff;
 
   const WorkOutDet({
     Key? key,
     required this.exercises,
     required this.index,
     required this.historyId,
+    required this.diff,
   }) : super(key: key);
 
   @override
@@ -26,7 +28,7 @@ class WorkOutDet extends StatelessWidget {
     final WorkoutService _workoutService = WorkoutService();
 
     return ChangeNotifierProvider<TimerModelSec>(
-      create: (context) => TimerModelSec(context, currentExercise.time, exercises, index, historyId),
+      create: (context) => TimerModelSec(context, currentExercise.difficulty[diff]!.time, exercises, index, historyId, diff),
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Stack(
@@ -56,7 +58,7 @@ class WorkOutDet extends StatelessWidget {
                       color: Colors.blueAccent,
                       borderRadius: BorderRadius.circular(50),
                     ),
-                    child: currentExercise.rep == 0
+                    child: currentExercise.difficulty[diff]!.rep == 0
                         ? Consumer<TimerModelSec>(
                       builder: (context, myModel, child) {
                         int minutes = myModel.countdown ~/ 60;
@@ -72,7 +74,7 @@ class WorkOutDet extends StatelessWidget {
                       },
                     )
                         : Text(
-                      "x${currentExercise.rep}",
+                      "x${currentExercise.difficulty[diff]!.rep}",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 30,
@@ -106,8 +108,8 @@ class WorkOutDet extends StatelessWidget {
                               onPressed: () async {
                                 // Tính toán thời gian thực tế và lượng calo
                                 final currentExercise = exercises[index];
-                                final realTime = currentExercise.time - myModel.countdown; // Thời gian thực tế
-                                final caloriesBurned = (realTime * currentExercise.calo) ~/ currentExercise.time; // Tính calo
+                                final realTime = currentExercise.difficulty[diff]!.time - myModel.countdown; // Thời gian thực tế
+                                final caloriesBurned = (realTime * currentExercise.difficulty[diff]!.calo) ~/ currentExercise.difficulty[diff]!.time; // Tính calo
 
                                 // Cập nhật lịch sử trước khi chuyển bài
                                 await _workoutService.updateWorkoutHistory(
@@ -127,6 +129,7 @@ class WorkOutDet extends StatelessWidget {
                                       exercises: exercises,
                                       index: index,
                                       historyId: historyId,
+                                      diff: diff,
                                     ),
                                   ),
                                 );
@@ -145,8 +148,8 @@ class WorkOutDet extends StatelessWidget {
                               onPressed: () async {
                                 // Tính toán thời gian thực tế và lượng calo
                                 final currentExercise = exercises[index];
-                                final realTime = currentExercise.time - myModel.countdown; // Thời gian thực tế
-                                final caloriesBurned = (realTime * currentExercise.calo) ~/ currentExercise.time; // Tính calo
+                                final realTime = currentExercise.difficulty[diff]!.time - myModel.countdown; // Thời gian thực tế
+                                final caloriesBurned = (realTime * currentExercise.difficulty[diff]!.calo) ~/ currentExercise.difficulty[diff]!.time; // Tính calo
 
                                 // Cập nhật lịch sử trước khi chuyển bài
                                 await _workoutService.updateWorkoutHistory(
@@ -178,6 +181,7 @@ class WorkOutDet extends StatelessWidget {
                                         exercises: exercises,
                                         index: index + 1,
                                         historyId: historyId,
+                                        diff: diff,
                                       ),
                                     ),
                                   );
@@ -250,7 +254,7 @@ class WorkOutDet extends StatelessWidget {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => ReadyView(exercises: exercises, index: 0, historyId: historyId,),
+                                              builder: (context) => ReadyView(exercises: exercises, index: 0, historyId: historyId, diff: diff,),
                                             ),
                                           );
                                         },
@@ -291,8 +295,8 @@ class WorkOutDet extends StatelessWidget {
                                         onPressed: () async {
                                           // Tính toán thời gian thực tế và lượng calo
                                           final currentExercise = exercises[index];
-                                          final realTime = currentExercise.time - myModel.countdown; // Thời gian thực tế
-                                          final caloriesBurned = (realTime * currentExercise.calo) ~/ currentExercise.time; // Tính calo
+                                          final realTime = currentExercise.difficulty[diff]!.time - myModel.countdown; // Thời gian thực tế
+                                          final caloriesBurned = (realTime * currentExercise.difficulty[diff]!.calo) ~/ currentExercise.difficulty[diff]!.time; // Tính calo
 
                                           // Cập nhật lịch sử trước khi chuyển bài
                                           await _workoutService.updateWorkoutHistory(
@@ -354,8 +358,9 @@ class TimerModelSec with ChangeNotifier {
   Timer? _timer;
   final String historyId;
   final WorkoutService _workoutService = WorkoutService();
+  final String diff;
 
-  TimerModelSec(BuildContext context, int initialTime, List<Exercise> exercises, int index, this.historyId) : countdown = initialTime {
+  TimerModelSec(BuildContext context, int initialTime, List<Exercise> exercises, int index, this.historyId, this.diff) : countdown = initialTime {
     _startTimer(context, exercises, index);
   }
 
@@ -373,8 +378,8 @@ class TimerModelSec with ChangeNotifier {
           await _workoutService.updateWorkoutHistory(
             historyId: historyId,
             index: index,
-            duration: exercise.time,
-            caloriesBurned: exercise.calo,
+            duration: exercise.difficulty[diff]!.time,
+            caloriesBurned: exercise.difficulty[diff]!.calo,
             completedAt: DateTime.now(),
           );
           if (index >= exercises.length - 1) {
@@ -394,6 +399,7 @@ class TimerModelSec with ChangeNotifier {
                       exercises: exercises,
                       index: index + 1,
                       historyId: historyId,
+                      diff: diff,
                     ),
               ),
             );

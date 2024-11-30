@@ -155,6 +155,7 @@ class WorkoutRow extends StatelessWidget {
                                     exercises: wObj["exercisesArr"],
                                     historyId: wObj["id"],
                                     index: wObj["index"],
+                                    diff: wObj["difficulty"],
                                   ),
                                 ),
                               );

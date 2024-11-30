@@ -30,7 +30,7 @@ class _AllWorkoutViewState extends State<AllWorkoutView> {
   }
 
   Future<void> _loadCategoryWorkouts() async {
-    List<Map<String, dynamic>> workouts = await _workoutService.fetchCategoryWorkoutList();
+    List<Map<String, dynamic>> workouts = await _workoutService.fetchWorkoutList();
     setState(() {
       whatArr = workouts;
       filteredArr = workouts; // Hiển thị tất cả ban đầu

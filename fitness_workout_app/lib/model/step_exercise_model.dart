@@ -1,34 +1,25 @@
-class StepExercise {
-  final String name;
-  final int step;
+class StepExerciseModel {
   final String title;
   final String detail;
 
-  StepExercise({
-    required this.name,
-    required this.step,
+  StepExerciseModel({
     required this.title,
     required this.detail,
   });
 
-  // Phương thức chuyển đổi từ JSON sang StepExercise
-  factory StepExercise.fromJson(Map<String, dynamic> json) {
-    return StepExercise(
-      name: json['name'] as String,
-      step: json['step'] as int,
-      title: json['title'] as String,
-      detail: json['detail'] as String,
+  // Chuyển đổi từ Firestore document thành đối tượng Step
+  factory StepExerciseModel.fromJson(Map<String, dynamic> data) {
+    return StepExerciseModel(
+      title: data['title'] ?? '',
+      detail: data['detail'] ?? '',
     );
   }
 
-  // Phương thức chuyển đổi từ StepExercise sang JSON
-  Map<String, dynamic> toJson() {
+  // Chuyển đổi đối tượng Step thành Firestore document
+  Map<String, dynamic> toFirestore() {
     return {
-      'name': name,
-      'step': step,
       'title': title,
       'detail': detail,
     };
   }
 }
-

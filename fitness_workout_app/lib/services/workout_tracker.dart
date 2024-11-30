@@ -10,206 +10,151 @@ class WorkoutService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final NotificationServices notificationServices = NotificationServices();
 
-  Future<List<Map<String, dynamic>>> fetchCategoryWorkoutList() async {
-    List<Map<String, dynamic>> categoryWorkoutList = [];
+  Future<List<Map<String, dynamic>>> fetchWorkoutList() async {
+    List<Map<String, dynamic>> workoutList = [];
 
     try {
-      // Fetch all CategoryWorkout documents
-      QuerySnapshot categorySnapshot = await _firestore.collection(
-          'CategoryWorkout').get();
-      //print("Fetched ${categorySnapshot.docs.length} categories.");
+      // Truy vấn tất cả các Workouts
+      QuerySnapshot workoutSnapshot =
+      await _firestore.collection('Workouts').get();
 
-      for (var categoryDoc in categorySnapshot.docs) {
-        String categoryId = categoryDoc.id;
-        String image = categoryDoc['pic'];
-        String title = categoryDoc['name'];
+      for (var workoutDoc in workoutSnapshot.docs) {
+        String workoutId = workoutDoc.id;
+        String image = workoutDoc['pic'];
+        String title = workoutDoc['name'];
+        List<String> exerciseNames = (workoutDoc['exercise_list'] as Map<dynamic, dynamic>)
+            .values
+            .map((e) => e.toString())
+            .toList();
+        List<String> levels = List<String>.from(workoutDoc['level']);
+        List<String> tools = List<String>.from(workoutDoc['tool']);
 
-        // Fetch all workouts for the current category in a single query
-        QuerySnapshot workoutSnapshot = await _firestore
-            .collection('Workout')
-            .where('id_cate', isEqualTo: categoryId)
-            .get();
-        int exerciseCount = workoutSnapshot.size;
-        //print("Category $title has $exerciseCount workouts.");
-
-        // Collect all unique exercise names for bulk querying
-        Set<String> exerciseNames = workoutSnapshot.docs
-            .map((workoutDoc) => workoutDoc['name_exercise'] as String)
-            .toSet();
-
-        //if (exerciseNames.isNotEmpty) {
-        // Fetch exercises with 'Beginner' difficulty for all collected exercise names in a single query
+        // Truy vấn Exercises với tên trong danh sách exercise_list
         QuerySnapshot exerciseSnapshot = await _firestore
-            .collection('Exercies')
-            .where('name', whereIn: exerciseNames.toList())
-            .where('difficulty', isEqualTo: 'Beginner')
+            .collection('Exercises')
+            .where('name', whereIn: exerciseNames)
             .get();
 
-        //print("Fetched ${exerciseSnapshot.docs.length} beginner exercises for category $title.");
-        // Calculate the total time for all beginner exercises in this category
+        // Tính toán tổng thời gian và calo
         int totalTimeInSeconds = 0;
-        for (var doc in exerciseSnapshot.docs) {
-          var timeField = doc['time'];
-          // Handle both int and string values for 'time'
-          int exerciseTimeInSeconds = 0;
-          if (timeField is int) {
-            exerciseTimeInSeconds = timeField;
-          } else if (timeField is String) {
-            exerciseTimeInSeconds = int.tryParse(timeField) ?? 0;
-          }
+        int totalCalo = 0;
+        for (var exerciseDoc in exerciseSnapshot.docs) {
+          var difficultyData = exerciseDoc['difficulty']['Beginner'];
+
+          // Thời gian
+          int exerciseTimeInSeconds = difficultyData['time'] ?? 0;
           totalTimeInSeconds += exerciseTimeInSeconds;
+
+          // Calo
+          int exerciseCalo = difficultyData['calo'] ?? 0;
+          totalCalo += exerciseCalo;
         }
 
-        // Convert total time in seconds to minutes
+        // Chuyển đổi thời gian từ giây sang phút
         int totalTimeInMinutes = (totalTimeInSeconds / 60).round();
 
-        // Calculate calo
-        int totalCalo = 0;
-        for (var doc in exerciseSnapshot.docs) {
-          var caloField = doc['calo'];
-          // Handle both int and string values for 'time'
-          int calo = 0;
-          if (caloField is int) {
-            calo = caloField;
-          } else if (caloField is String) {
-            calo = int.tryParse(caloField) ?? 0;
-          }
-          totalCalo += calo;
-        }
-
-        // Add category workout data to the list
-        categoryWorkoutList.add({
-          'id': categoryId,
+        // Thêm dữ liệu vào danh sách
+        workoutList.add({
+          'id': workoutId,
           'image': image,
           'title': title,
-          'exercises': "$exerciseCount Exercises",
+          'exercises': "${exerciseNames.length} Exercises",
           'time': "$totalTimeInMinutes Mins",
           'calo': "$totalCalo Calories Burn",
           'difficulty': 'Beginner',
+          'levels': levels,
+          'tools': tools,
         });
       }
     } catch (e) {
-      print("Error fetching category workouts: $e");
+      print("Error fetching workouts: $e");
     }
-    return categoryWorkoutList;
+
+    return workoutList;
   }
 
-  Future<List<Map<String, dynamic>>> fetchCategoryWorkoutWithLevelList(
-      {required String level}) async {
-    List<Map<String, dynamic>> categoryWorkoutList = [];
-    String diff = 'Beginner';
+  Future<List<Map<String, dynamic>>> fetchWorkoutsByLevel({required String level}) async {
+    List<Map<String, dynamic>> workoutList = [];
 
     try {
-      // Fetch all CategoryWorkout documents
-      QuerySnapshot categorySnapshot = await _firestore
-          .collection('CategoryWorkout')
+      // Truy vấn Workouts theo cấp độ
+      QuerySnapshot workoutSnapshot = await _firestore
+          .collection('Workouts')
           .where('level', arrayContains: level)
           .get();
-      //print("Fetched ${categorySnapshot.docs.length} categories.");
 
-      for (var categoryDoc in categorySnapshot.docs) {
-        String categoryId = categoryDoc.id;
-        String image = categoryDoc['pic'];
-        String title = categoryDoc['name'];
+      for (var workoutDoc in workoutSnapshot.docs) {
+        String workoutId = workoutDoc.id;
+        String image = workoutDoc['pic'];
+        String title = workoutDoc['name'];
+        List<String> exerciseNames = (workoutDoc['exercise_list'] as Map<dynamic, dynamic>)
+            .values
+            .map((e) => e.toString())
+            .toList();
 
-        // Fetch all workouts for the current category in a single query
-        QuerySnapshot workoutSnapshot = await _firestore
-            .collection('Workout')
-            .where('id_cate', isEqualTo: categoryId)
+        // Truy vấn Exercises với tên bài tập trong exercise_list
+        QuerySnapshot exerciseSnapshot = await _firestore
+            .collection('Exercises')
+            .where('name', whereIn: exerciseNames)
             .get();
-        int exerciseCount = workoutSnapshot.size;
-        //print("Category $title has $exerciseCount workouts.");
 
-        // Collect all unique exercise names for bulk querying
-        Set<String> exerciseNames = workoutSnapshot.docs
-            .map((workoutDoc) => workoutDoc['name_exercise'] as String)
-            .toSet();
+        // Tính toán tổng thời gian và calo cho cấp độ Beginner
+        int totalTimeInSeconds = 0;
+        int totalCalo = 0;
+        for (var exerciseDoc in exerciseSnapshot.docs) {
+          var difficultyData = exerciseDoc['difficulty']['Beginner'];
 
-        if (exerciseNames.isNotEmpty) {
-          // Fetch exercises with 'Beginner' difficulty for all collected exercise names in a single query
-          QuerySnapshot exerciseSnapshot = await _firestore
-              .collection('Exercies')
-              .where('name', whereIn: exerciseNames.toList())
-              .where('difficulty', isEqualTo: 'Beginner')
-              .get();
+          // Thời gian
+          int exerciseTimeInSeconds = difficultyData['time'] ?? 0;
+          totalTimeInSeconds += exerciseTimeInSeconds;
 
-          //print("Fetched ${exerciseSnapshot.docs.length} beginner exercises for category $title.");
-          // Calculate the total time for all beginner exercises in this category
-          int totalTimeInSeconds = 0;
-          for (var doc in exerciseSnapshot.docs) {
-            var timeField = doc['time'];
-            // Handle both int and string values for 'time'
-            int exerciseTimeInSeconds = 0;
-            if (timeField is int) {
-              exerciseTimeInSeconds = timeField;
-            } else if (timeField is String) {
-              exerciseTimeInSeconds = int.tryParse(timeField) ?? 0;
-            }
-            totalTimeInSeconds += exerciseTimeInSeconds;
-          }
-
-          // Convert total time in seconds to minutes
-          int totalTimeInMinutes = (totalTimeInSeconds / 60).round();
-
-          // Calculate calo
-          int totalCalo = 0;
-          for (var doc in exerciseSnapshot.docs) {
-            var caloField = doc['calo'];
-            // Handle both int and string values for 'time'
-            int calo = 0;
-            if (caloField is int) {
-              calo = caloField;
-            } else if (caloField is String) {
-              calo = int.tryParse(caloField) ?? 0;
-            }
-            totalCalo += calo;
-          }
-
-          // Add category workout data to the list
-          categoryWorkoutList.add({
-            'id': categoryId,
-            'image': image,
-            'title': title,
-            'exercises': "$exerciseCount Exercises",
-            'time': "$totalTimeInMinutes Mins",
-            'calo': "$totalCalo Calories Burn",
-            'difficulty': diff,
-          });
-        } else {
-          print("No exercise names found for category $title.");
+          // Calo
+          int exerciseCalo = difficultyData['calo'] ?? 0;
+          totalCalo += exerciseCalo;
         }
+
+        // Chuyển đổi thời gian từ giây sang phút
+        int totalTimeInMinutes = (totalTimeInSeconds / 60).round();
+
+        // Thêm dữ liệu vào danh sách
+        workoutList.add({
+          'id': workoutId,
+          'image': image,
+          'title': title,
+          'exercises': "${exerciseNames.length} Exercises",
+          'time': "$totalTimeInMinutes Mins",
+          'calo': "$totalCalo Calories Burn",
+          'difficulty': level,
+        });
       }
     } catch (e) {
-      print("Error fetching category workouts: $e");
+      print("Error fetching workouts by level: $e");
     }
 
-    return categoryWorkoutList;
+    return workoutList;
   }
 
-  Future<List<Map<String, dynamic>>> fetchToolsForCategory(
-      String categoryId) async {
+  Future<List<Map<String, dynamic>>> fetchToolsForWorkout(String workoutId) async {
     List<Map<String, dynamic>> toolsList = [];
 
     try {
-      // Bước 1: Lấy danh sách id_tool từ CateWork_tool
-      QuerySnapshot cateWorkToolSnapshot = await FirebaseFirestore.instance
-          .collection('CateWork_tool')
-          .where('id_cate', isEqualTo: categoryId)
+      // Truy vấn tài liệu Workouts theo workoutId
+      DocumentSnapshot workoutDoc = await FirebaseFirestore.instance
+          .collection('Workouts')
+          .doc(workoutId)
           .get();
 
-      // Bước 2: Lấy danh sách id_tool từ kết quả truy vấn
-      List<String> toolIds = cateWorkToolSnapshot.docs
-          .map((doc) => doc['id_tool'] as String)
-          .toList();
+      if (workoutDoc.exists) {
+        // Lấy danh sách tools từ tài liệu Workouts
+        List<String> toolNames = List<String>.from(workoutDoc['tool']);
 
-      if (toolIds.isNotEmpty) {
-        // Bước 3: Lấy thông tin chi tiết của các tool từ collection Tools
+        // Truy vấn chi tiết tools từ collection Tools
         QuerySnapshot toolsSnapshot = await FirebaseFirestore.instance
             .collection('Tools')
-            .where(FieldPath.documentId, whereIn: toolIds)
+            .where('name', whereIn: toolNames)
             .get();
 
-        // Bước 4: Chuyển đổi các document thành map
+        // Chuyển đổi các document Tools thành map
         for (var toolDoc in toolsSnapshot.docs) {
           toolsList.add({
             'id': toolDoc.id,
@@ -219,64 +164,51 @@ class WorkoutService {
         }
       }
     } catch (e) {
-      print("Error fetching tools: $e");
+      print("Error fetching tools for workout: $e");
     }
+
     return toolsList;
   }
 
-  Future<List<Exercise>> fetchExercisesByCategoryAndDifficulty({
-    required String categoryId,
-    required String difficulty,
-  }) async {
+  Future<List<Exercise>> fetchExercisesFromWorkout({required String workoutId}) async {
     List<Exercise> exercises = [];
 
     try {
-      // Bước 1: Truy vấn danh sách Workout dựa trên categoryId và sắp xếp theo ste
-      //print("Fetching workouts for category ID: $categoryId");
-      QuerySnapshot workoutSnapshot = await _firestore
-          .collection('Workout')
-          .where('id_cate', isEqualTo: categoryId)
-          .orderBy('step')
+      // Bước 1: Lấy document của Workout
+      DocumentSnapshot workoutDoc = await FirebaseFirestore.instance
+          .collection('Workouts')
+          .doc(workoutId)
           .get();
-      //print("Fetched ${workoutSnapshot.docs.length} workouts");
 
-      // Lấy danh sách các name_exercise duy nhất từ các document của Workout
-      List<String> exerciseNames = workoutSnapshot.docs
-          .map((doc) => doc['name_exercise'] as String)
-          .toSet()
-          .toList();
-      //print("Unique exercise names extracted: $exerciseNames");
-
-      if (exerciseNames.isNotEmpty) {
-        // Bước 2: Truy vấn Exercises với name nằm trong exerciseNames và lọc theo difficulty
-        //print("Fetching exercises with names: $exerciseNames and difficulty: $difficulty");
-        QuerySnapshot exerciseSnapshot = await _firestore
-            .collection('Exercies')
-            .where('name', whereIn: exerciseNames)
-            .where('difficulty', isEqualTo: difficulty)
-            .get();
-        //print("Fetched ${exerciseSnapshot.docs.length} exercises matching difficulty: $difficulty");
-
-        // Tạo bản đồ nhanh để tra cứu tài liệu Exercises
-        Map<String, Exercise> exerciseMap = {
-          for (var doc in exerciseSnapshot.docs)
-            doc['name']: Exercise.fromJson(
-                doc.data() as Map<String, dynamic>)
-        };
-
-        // Sắp xếp lại danh sách exercises theo thứ tự của exerciseNames
-        exercises = exerciseNames
-            .where((name) =>
-            exerciseMap.containsKey(name)) // Lọc các bài tập hợp lệ
-            .map((name) => exerciseMap[name]!) // Lấy bài tập theo thứ tự
+      if (workoutDoc.exists) {
+        // Lấy danh sách name_exercise từ document
+        List<String> exerciseNames = (workoutDoc['exercise_list'] as Map<dynamic, dynamic>)
+            .values
+            .map((e) => e.toString())
             .toList();
+
+        if (exerciseNames.isNotEmpty) {
+          // Bước 2: Lấy thông tin các bài tập từ collection Exercises
+          QuerySnapshot exerciseSnapshot = await FirebaseFirestore.instance
+              .collection('Exercises')
+              .where('name', whereIn: exerciseNames)
+              .get();
+
+          // Bước 3: Chuyển đổi từng document thành đối tượng Exercise
+          for (var doc in exerciseSnapshot.docs) {
+            Exercise exercise = Exercise.fromJson(doc.data() as Map<String, dynamic>);
+            exercises.add(exercise);
+          }
+        } else {
+          print("No exercises found in workout $workoutId.");
+        }
       } else {
-        print(
-            "No exercise names found in workouts for category ID: $categoryId");
+        print("Workout with ID $workoutId does not exist.");
       }
     } catch (e) {
-      print("Error fetching exercises: $e");
+      print("Error fetching exercises from workout: $e");
     }
+
     return exercises;
   }
 
@@ -287,82 +219,57 @@ class WorkoutService {
     Map<String, String> data = {};
 
     try {
-      QuerySnapshot workoutSnapshot = await _firestore
-          .collection('Workout')
-          .where('id_cate', isEqualTo: categoryId)
+      // Bước 1: Truy vấn các bài tập thuộc category
+      QuerySnapshot workoutSnapshot = await FirebaseFirestore.instance
+          .collection('Workouts')
+          .where('name', isEqualTo: categoryId)
           .get();
 
-      // Collect all unique exercise names for bulk querying
-      Set<String> exerciseNames = workoutSnapshot.docs
-          .map((workoutDoc) => workoutDoc['name_exercise'] as String)
-          .toSet();
-
-      // Fetch exercises with 'Beginner' difficulty for all collected exercise names in a single query
-      QuerySnapshot exerciseSnapshot = await _firestore
-          .collection('Exercies')
-          .where('name', whereIn: exerciseNames.toList())
-          .where('difficulty', isEqualTo: difficulty)
-          .get();
-
-      // Calculate the total time for all beginner exercises in this category
+      // Bước 2: Tổng hợp thông tin từ từng bài tập
       int totalTimeInSeconds = 0;
-      for (var doc in exerciseSnapshot.docs) {
-        var timeField = doc['time'];
-        // Handle both int and string values for 'time'
-        int exerciseTimeInSeconds = 0;
-        if (timeField is int) {
-          exerciseTimeInSeconds = timeField;
-        } else if (timeField is String) {
-          exerciseTimeInSeconds = int.tryParse(timeField) ?? 0;
+      int totalCalo = 0;
+
+      for (var workoutDoc in workoutSnapshot.docs) {
+        // Lấy danh sách tên bài tập từ document
+        List<String> exerciseNames = (workoutDoc['exercise_list'] as Map<dynamic, dynamic>)
+            .values
+            .map((e) => e.toString())
+            .toList();
+
+        if (exerciseNames.isNotEmpty) {
+          // Truy vấn các bài tập dựa trên tên và độ khó
+          QuerySnapshot exerciseSnapshot = await FirebaseFirestore.instance
+              .collection('Exercises')
+              .where('name', whereIn: exerciseNames)
+              .get();
+
+          for (var exerciseDoc in exerciseSnapshot.docs) {
+            var difficultyData = exerciseDoc['difficulty'][difficulty];
+
+            // Thời gian
+            int exerciseTimeInSeconds = difficultyData['time'] ?? 0;
+            totalTimeInSeconds += exerciseTimeInSeconds;
+
+            // Calo
+            int exerciseCalo = difficultyData['calo'] ?? 0;
+            totalCalo += exerciseCalo;
+          }
         }
-        totalTimeInSeconds += exerciseTimeInSeconds;
       }
 
-      // Convert total time in seconds to minutes
+      // Bước 3: Chuyển đổi tổng thời gian sang phút
       int totalTimeInMinutes = (totalTimeInSeconds / 60).round();
 
-      // Calculate calo
-      int totalCalo = 0;
-      for (var doc in exerciseSnapshot.docs) {
-        var caloField = doc['calo'];
-        // Handle both int and string values for 'time'
-        int calo = 0;
-        if (caloField is int) {
-          calo = caloField;
-        } else if (caloField is String) {
-          calo = int.tryParse(caloField) ?? 0;
-        }
-        totalCalo += calo;
-      }
-      // Store the result in the map
+      // Lưu kết quả vào map
       data['time'] = "$totalTimeInMinutes Mins";
-      data['calo'] = "$totalCalo Calo Burned";
+      data['calo'] = "$totalCalo Calories Burned";
     } catch (e) {
-      print("Error fetching category workouts: $e");
+      print("Error fetching time and calo: $e");
     }
+
     return data;
   }
 
-  Future<List<StepExercise>> fetchStepExercises({
-    required String name,
-  }) async {
-    List<StepExercise> stepExercises = [];
-    try {
-      QuerySnapshot stepExercisesSnapshot = await _firestore
-          .collection('Step_exercies')
-          .where('name', isEqualTo: name)
-          .orderBy('step')
-          .get();
-      // Chuyển đổi mỗi tài liệu thành đối tượng StepExercise và thêm vào danh sách
-      for (var stepDoc in stepExercisesSnapshot.docs) {
-        stepExercises.add(
-            StepExercise.fromJson(stepDoc.data() as Map<String, dynamic>));
-      }
-    } catch (e) {
-      print("Error fetching stepExercises: $e");
-    }
-    return stepExercises;
-  }
 
   Future<List<Map<String, dynamic>>> fetchWorkoutSchedule({
     required String userId,
