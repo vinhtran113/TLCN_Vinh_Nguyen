@@ -1,6 +1,8 @@
 import 'package:fitness_workout_app/services/auth.dart';
 import 'package:fitness_workout_app/services/notification.dart';
 import 'package:fitness_workout_app/view/home/notification_view.dart';
+import 'package:fitness_workout_app/view/login/complete_profile_view.dart';
+import 'package:fitness_workout_app/view/login/what_your_goal_view.dart';
 import 'package:fitness_workout_app/view/main_tab/main_tab_view.dart';
 import 'package:fitness_workout_app/view/on_boarding/started_view.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +63,12 @@ class MyApp extends StatelessWidget {
     UserModel? user;
     if (FirebaseAuth.instance.currentUser != null) {
       user = await AuthService().getUserInfo(FirebaseAuth.instance.currentUser!.uid);
+    }
+    if (user?.gender == ''){
+      return const CompleteProfileView();
+    }
+    if (user?.level == ''){
+      return const WhatYourGoalView();
     }
     if (user != null) {
       return MainTabView(user: user);

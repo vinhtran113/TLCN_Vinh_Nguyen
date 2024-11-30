@@ -49,7 +49,7 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
     );
 
     if (res == "success") {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => const WhatYourGoalView(),
@@ -84,6 +84,9 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
                 padding: const EdgeInsets.all(15.0),
                 child: Column(
                   children: [
+                    SizedBox(
+                      height: media.width * 0.12,
+                    ),
                     Image.asset(
                       "assets/img/complete_profile.png",
                       width: media.width,
@@ -257,7 +260,7 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
                             ],
                           ),
                           SizedBox(
-                            height: media.width * 0.07,
+                            height: media.width * 0.1,
                           ),
                           RoundButton(
                             title: "Next >",

@@ -49,12 +49,12 @@ class UserModel {
       fname: json['fname'],
       lname: json['lname'],
       email: json['email'],
-      dateOfBirth: json['date_of_birth'],
-      gender: json['gender'],
-      weight: json['weight'],
-      height: json['height'],
-      pic: json['pic'],
-      level: json['level'],
+      dateOfBirth: json['date_of_birth'] ?? '',
+      gender: json['gender'] ?? '',
+      weight: json['weight'] ?? '',
+      height: json['height'] ?? '',
+      pic: json['pic'] ?? '',
+      level: json['level'] ?? '',
     );
   }
 }

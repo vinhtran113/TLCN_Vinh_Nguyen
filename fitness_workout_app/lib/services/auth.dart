@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_workout_app/model/user_model.dart';
+import 'package:intl/intl.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
 import 'notification.dart';
@@ -19,7 +20,7 @@ class AuthService {
     required String lname,
   }) async {
     String res = "Có lỗi gì đó xảy ra";
-    bool activate = false;
+    bool activate = true;
     String role = "user";
     try {
       if (email.isEmpty || password.isEmpty ||
@@ -70,23 +71,43 @@ class AuthService {
     String res = "Có lỗi xảy ra";
     try {
       if (email.isEmpty || password.isEmpty) {
-        return "Vui lòng nhập đầy đủ thông tin"; // Lỗi nhập thiếu
+        return "Vui lòng nhập đầy đủ thông tin";
       }
       if (!RegExp(r"^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]+$").hasMatch(
           email)) {
-        return "Vui lòng nhập đúng định dạng email"; // Email sai định dạng
+        return "Vui lòng nhập đúng định dạng email";
       }
-      // Lấy thông tin user từ Firestore dựa trên email
-      var userSnapshot = await _firestore.collection('users').where('email', isEqualTo: email).get();
+      var userSnapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .get();
+
       if (userSnapshot.docs.isEmpty) {
         return "Không tìm thấy tài khoản với email này.";
       }
+
       var userDoc = userSnapshot.docs.first;
+
       bool isActivated = userDoc['activate'];
       if (!isActivated) {
         return "not-activate";
       }
-      // Đăng nhập người dùng bằng email và mật khẩu
+
+      String checkPass = userDoc['password'];
+      if(password != checkPass){
+        return "Mật khẩu của bạn không chính xác!";
+      }
+
+      String weight = userDoc['weight'];
+      if(weight == ""){
+        return "not-profile";
+      }
+
+      String level = userDoc['level'];
+      if(level == ""){
+        return "not-level";
+      }
+
       await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -121,6 +142,9 @@ class AuthService {
         height.isEmpty) {
       return "Vui lòng điền đầy đủ thông tin.";
     }
+    if(getAge(dateOfBirth) < 10){
+      return "Bạn phải đạt ít nhất 10 tuổi";
+    }
     if (double.tryParse(weight) == null || double.parse(weight) <= 30) {
       return "Cân nặng phải là số và lớn hơn 30.";
     }
@@ -141,6 +165,22 @@ class AuthService {
       res = e.toString();
     }
     return res;
+  }
+
+  int getAge(String dateOfBirth) {
+    // Sử dụng DateFormat để parse chuỗi ngày tháng
+    DateFormat dateFormat = DateFormat('dd/MM/yyyy');
+    DateTime dob = dateFormat.parse(dateOfBirth);
+    DateTime today = DateTime.now();
+
+    int age = today.year - dob.year;
+
+    // Nếu chưa đến ngày sinh nhật trong năm nay, thì trừ 1 tuổi
+    if (today.month < dob.month || (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+
+    return age;
   }
 
   Future<UserModel?> getUserInfo(String uid) async {

@@ -87,9 +87,6 @@ class WorkoutService {
           'calo': "$totalCalo Calories Burn",
           'difficulty': 'Beginner',
         });
-        //} else {
-        //print("No exercise names found for category $title.");
-        //}
       }
     } catch (e) {
       print("Error fetching category workouts: $e");

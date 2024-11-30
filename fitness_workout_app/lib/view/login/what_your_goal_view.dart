@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fitness_workout_app/view/login/welcome_view.dart';
 import 'package:flutter/material.dart';
 import '../../common/colo_extension.dart';
 import '../../common_widget/round_button.dart';
@@ -39,34 +40,33 @@ class _WhatYourGoalViewState extends State<WhatYourGoalView> {
     },
   ];
 
-  void sentOTP() async {
-    try {
-      await AuthService().updateUserLevel(
-          FirebaseAuth.instance.currentUser!.uid, selectedGoal);
-      String res = await AuthService().sendOtpEmail(
-          FirebaseAuth.instance.currentUser!.uid);
-      if (res == "success") {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('OTP đã được gửi đến email của bạn')),
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ActivateAccountView(),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(res)),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi xảy ra: $e')),
-      );
-    }
-  }
-
+  // void sentOTP() async {
+  //   try {
+  //     await AuthService().updateUserLevel(
+  //         FirebaseAuth.instance.currentUser!.uid, selectedGoal);
+  //     String res = await AuthService().sendOtpEmail(
+  //         FirebaseAuth.instance.currentUser!.uid);
+  //     if (res == "success") {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('OTP đã được gửi đến email của bạn')),
+  //       );
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => const ActivateAccountView(),
+  //         ),
+  //       );
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text(res)),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Lỗi xảy ra: $e')),
+  //     );
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +155,7 @@ class _WhatYourGoalViewState extends State<WhatYourGoalView> {
                       height: media.width * 0.05,
                     ),
                     Text(
-                      "What is your goal ?",
+                      "What is your goal?",
                       style: TextStyle(
                           color: TColor.black,
                           fontSize: 20,
@@ -167,12 +167,21 @@ class _WhatYourGoalViewState extends State<WhatYourGoalView> {
                       style: TextStyle(color: TColor.gray, fontSize: 12),
                     ),
                     const Spacer(),
+                    RoundButton(
+                        title: "Confirm",
+                        onPressed:() async {
+                          await AuthService().updateUserLevel(
+                              FirebaseAuth.instance.currentUser!.uid, selectedGoal);
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const WelcomeView(),
+                            ),
+                          );
+                        }),
                     SizedBox(
                       height: media.width * 0.05,
                     ),
-                    RoundButton(
-                        title: "Confirm",
-                        onPressed: sentOTP),
                   ],
                 ),
               )

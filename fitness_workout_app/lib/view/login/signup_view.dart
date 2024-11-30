@@ -46,11 +46,12 @@ class _SignUpViewState extends State<SignUpView> {
       );
 
       if (res == "success") {
-        //Navigator.pushReplacementNamed(context, '/completeProfile');
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const CompleteProfileView()));
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const CompleteProfileView(),
+          ),
+              (route) => false,
+        );
         setState(() {
           isLoading = false;
         });
@@ -72,7 +73,6 @@ class _SignUpViewState extends State<SignUpView> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery
@@ -89,6 +89,9 @@ class _SignUpViewState extends State<SignUpView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    SizedBox(
+                      height: media.width * 0.1,
+                    ),
                     Text(
                       "Hey there,",
                       style: TextStyle(color: TColor.gray, fontSize: 16),
@@ -332,9 +335,6 @@ class _SignUpViewState extends State<SignUpView> {
                           )
                         ],
                       ),
-                    ),
-                    SizedBox(
-                      height: media.width * 0.04,
                     ),
                   ],
                 ),

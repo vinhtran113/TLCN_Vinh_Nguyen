@@ -5,10 +5,12 @@ import 'package:fitness_workout_app/common_widget/round_textfield.dart';
 import 'package:fitness_workout_app/view/login/reset_password_view.dart';
 import 'package:fitness_workout_app/view/login/signup_view.dart';
 import 'package:fitness_workout_app/view/login/welcome_view.dart';
+import 'package:fitness_workout_app/view/login/what_your_goal_view.dart';
 import 'package:flutter/material.dart';
 import 'package:fitness_workout_app/services/auth.dart';
 import 'package:fitness_workout_app/model/user_model.dart';
-import 'activate_account.dart';
+
+import 'complete_profile_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -40,29 +42,29 @@ class _LoginViewState extends State<LoginView> {
         password: passwordController.text,
       );
 
-      if(res == "not-activate"){
-        String res1 = await AuthService().sendOtpEmail(FirebaseAuth.instance.currentUser!.uid);
-        if (res1 == "success"){
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('OTP đã được gửi đến email của bạn')),
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ActivateAccountView(),
-            ),
-          );
-          setState(() {
-            isLoading = false;
-          });
-        }else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(res1)),
-          );
-          setState(() {
-            isLoading = false;
-          });
-        }
+      if (res == "not-activate") {
+        _showBlockDialog(context);
+        await AuthService().logOut();
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      if (res == "not-profile") {
+        _showNeedCompleteProfileDialog(context);
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      if (res == "not-level") {
+        _showNeedCompleteGoalDialog(context);
+        setState(() {
+          isLoading = false;
+        });
+        return;
       }
 
       if (res == "success") {
@@ -72,12 +74,11 @@ class _LoginViewState extends State<LoginView> {
 
         if (user != null) {
           // Điều hướng đến HomeView với user
-          Navigator.pushReplacement(
-            context,
+          Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (context) =>
-                  const WelcomeView(), // Truyền user vào HomeView
+              builder: (context) => const WelcomeView(),
             ),
+                (route) => false,
           );
         }
         setState(() {
@@ -101,6 +102,76 @@ class _LoginViewState extends State<LoginView> {
     }
   }
 
+  void _showBlockDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Block Account"),
+          content: const Text("Tài khoản của bạn đã bị chặn bởi admin?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Xác nhận"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showNeedCompleteProfileDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Complete your profile"),
+          content: const Text("Bạn chưa hoàn thành việc thiết lập tài khoản?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const CompleteProfileView(),
+                  ),
+                      (route) => false,
+                );
+              },
+              child: const Text("Xác nhận"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showNeedCompleteGoalDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Complete your goal"),
+          content: const Text("Bạn chưa hoàn thành việc thiết lập tài khoản?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const WhatYourGoalView(),
+                  ),
+                      (route) => false,
+                );
+              },
+              child: const Text("Xác nhận"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery
@@ -118,6 +189,9 @@ class _LoginViewState extends State<LoginView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    SizedBox(
+                      height: media.width * 0.1,
+                    ),
                     Text(
                       "Hey there,",
                       style: TextStyle(color: TColor.gray, fontSize: 16),
@@ -310,9 +384,7 @@ class _LoginViewState extends State<LoginView> {
                         ],
                       ),
                     ),
-                    SizedBox(
-                      height: media.width * 0.04,
-                    ),
+
                   ],
                 ),
               ),

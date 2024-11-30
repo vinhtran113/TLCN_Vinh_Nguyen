@@ -190,12 +190,12 @@ class _ChangeGoalViewState extends State<ChangeGoalView> {
                       style: TextStyle(color: TColor.gray, fontSize: 12),
                     ),
                     const Spacer(),
-                    SizedBox(
-                      height: media.width * 0.05,
-                    ),
                     RoundButton(
                         title: "Confirm",
                         onPressed: changeGoal),
+                    SizedBox(
+                      height: media.width * 0.05,
+                    ),
                   ],
                 ),
               )
