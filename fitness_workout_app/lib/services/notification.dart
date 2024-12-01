@@ -195,11 +195,9 @@ class NotificationServices {
       // Tính toán ngày kết thúc (30 ngày sau)
       final DateTime endDate = scheduledTime.add(Duration(days: 30));
       final tz.TZDateTime endTZDateTime = tz.TZDateTime.from(endDate, tz.local);
-      //print('End Date: $endTZDateTime');
 
       // Chia danh sách các ngày lặp lại
       List<String> daysOfWeek = repeatInterval.split(',');
-      //print('Parsed days of week: $daysOfWeek');
       Set<int> weekdaysSet = {};
 
       for (String day in daysOfWeek) {
@@ -234,10 +232,8 @@ class NotificationServices {
           );
           //print('Scheduled ${id.hashCode} notification for: $currentScheduledTime');
         }
-
         // Tính ngày tiếp theo trong tuần
-        currentScheduledTime =
-            _nextInstanceOfWeekday(currentScheduledTime, weekdaysSet);
+        currentScheduledTime = _nextInstanceOfWeekday(currentScheduledTime, weekdaysSet);
       }
 
       // Kiểm tra nếu ngày lên lịch không nằm trong danh sách, thêm vào
@@ -260,9 +256,9 @@ class NotificationServices {
               .wallClockTime,
           matchDateTimeComponents: DateTimeComponents.time,
         );
-        //print('Scheduled notification ${id.hashCode} for the initial day: $scheduledTZDateTime');
       }
     }
+    print('Notification ID updated for workout ${id.hashCode}');
     return id.hashCode.toString();
   }
 
@@ -295,7 +291,6 @@ class NotificationServices {
       newScheduledTime = newScheduledTime.add(
           Duration(days: 7)); // Nếu đã qua, chuyển sang tuần sau
     }
-
     return newScheduledTime;
   }
 
@@ -384,9 +379,7 @@ class NotificationServices {
           selectedHour.minute,
         );
         // Kiểm tra nếu lịch là trong quá khứ và không phải lịch lặp lại
-        if (selectedDateTime.isBefore(DateTime.now()) &&
-            repeatInterval == 'no') {
-          // Nếu thời gian lên lịch đã qua và không phải lịch lặp lại, bỏ qua lịch này
+        if (selectedDateTime.isBefore(DateTime.now()) && repeatInterval == 'no') {
           continue;
         }
         // Lên lịch lại thông báo dựa trên thông tin từ Firestore

@@ -147,12 +147,11 @@ class _FinishedWorkoutViewState extends State<FinishedWorkoutView> {
               RoundButton(
                   title: "Back To Home",
                   onPressed: () {
-                    Navigator.push(
-                      context,
+                    Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
-                        builder: (
-                            context) => const WorkoutTrackerView(),
+                        builder: (context) => const WorkoutTrackerView(),
                       ),
+                          (route) => false,
                     );
                   }),
 

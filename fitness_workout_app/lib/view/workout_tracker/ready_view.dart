@@ -75,7 +75,7 @@ class TimerModel with ChangeNotifier {
       countdown--;
       if (countdown == 0) {
         timer.cancel();
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => WorkOutDet(
