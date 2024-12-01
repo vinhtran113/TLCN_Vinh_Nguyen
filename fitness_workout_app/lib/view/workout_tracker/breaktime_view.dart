@@ -3,7 +3,6 @@ import 'package:fitness_workout_app/view/workout_tracker/workout_start_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../model/exercise_model.dart';
-import 'finished_workout_view.dart';
 
 class BreakTime extends StatelessWidget {
   final List<Exercise> exercises;

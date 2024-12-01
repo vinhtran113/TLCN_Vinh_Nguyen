@@ -187,14 +187,11 @@ class WorkOutDet extends StatelessWidget {
 
                                   // Kiểm tra nếu đây là bài tập cuối cùng
                                   if (index == exercises.length - 1) {
-                                    // Nếu là bài tập cuối cùng, điều hướng đến FinishedWorkoutView
-                                    Navigator.pushReplacement(
-                                      context,
+                                    Navigator.of(context).pushAndRemoveUntil(
                                       MaterialPageRoute(
-                                        builder: (context) =>
-                                            FinishedWorkoutView(
-                                              historyId: historyId,),
+                                        builder: (context) => FinishedWorkoutView(historyId: historyId,),
                                       ),
+                                          (route) => false, // Xóa toàn bộ route cũ
                                     );
                                   } else {
                                     // Nếu không, điều hướng đến bài tập tiếp theo
@@ -356,13 +353,11 @@ class WorkOutDet extends StatelessWidget {
                                             // Nếu người dùng nhấn "Có", điều hướng đến WorkoutTrackerView
                                             Navigator.of(context)
                                                 .pop(); // Đóng hộp thoại trước
-                                            Navigator.pushReplacement(
-                                              context,
+                                            Navigator.of(context).pushAndRemoveUntil(
                                               MaterialPageRoute(
-                                                builder: (context) =>
-                                                    FinishedWorkoutView(
-                                                        historyId: historyId),
+                                                builder: (context) => FinishedWorkoutView(historyId: historyId,),
                                               ),
+                                                  (route) => false, // Xóa toàn bộ route cũ
                                             );
                                           },
                                           child: Text("Có"),
@@ -436,11 +431,11 @@ class TimerModelSec with ChangeNotifier {
             completedAt: DateTime.now(),
           );
           if (index >= exercises.length - 1) {
-            // Nếu là bài tập cuối cùng, chuyển đến FinishedWorkoutView
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) =>
-                  FinishedWorkoutView(historyId: historyId,)),
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => FinishedWorkoutView(historyId: historyId,),
+              ),
+                  (route) => false, // Xóa toàn bộ route cũ
             );
           } else {
             // Chuyển đến bài tập tiếp theo
