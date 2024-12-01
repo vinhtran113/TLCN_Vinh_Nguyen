@@ -8,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../view/workout_tracker/workour_detail_view.dart';
 
@@ -29,6 +30,67 @@ class NotificationServices {
     tz.setLocalLocation(tz.getLocation('Asia/Ho_Chi_Minh'));
   }
 
+  Future<void> _addNotificationToArr(Map<String, dynamic> notificationData, DateTime scheduledTime) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> notificationArr = prefs.getStringList('notificationArr') ?? [];
+
+    // Thêm trường 'time' với thời gian đã lên lịch
+    notificationData['time'] = scheduledTime.toIso8601String();
+
+    // Thêm thông báo mới (chuyển thành String JSON)
+    notificationArr.add(jsonEncode(notificationData));
+
+    // Lưu lại danh sách đã cập nhật
+    await prefs.setStringList('notificationArr', notificationArr);
+  }
+
+  // Tải danh sách notificationArr từ SharedPreferences
+  Future<List<Map<String, String>>> loadNotificationArr() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final encodedData = prefs.getStringList('notificationArr'); // Sử dụng getStringList thay vì getString
+      if (encodedData != null && encodedData.isNotEmpty) {
+        // Giải mã từng phần tử trong danh sách JSON
+        final decodedData = encodedData.map((item) {
+          return Map<String, String>.from(jsonDecode(item));
+        }).toList();
+
+        print("Notifications loaded successfully");
+        return decodedData;
+      }
+    } catch (e) {
+      print("Error loading notifications: $e");
+    }
+    return [];
+  }
+
+  Future<void> removeNotification(String notificationId) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> notificationArr = prefs.getStringList('notificationArr') ?? [];
+
+    // Tìm và xóa thông báo có ID tương ứng
+    notificationArr.removeWhere((item) {
+      final Map<String, dynamic> notificationData = jsonDecode(item);
+      return notificationData['id'] == notificationId; // Kiểm tra ID
+    });
+
+    // Lưu lại danh sách đã cập nhật
+    await prefs.setStringList('notificationArr', notificationArr);
+  }
+
+  // Cập nhật trạng thái thông báo mới khi người dùng nhấn vào
+  Future<void> _markNotificationsAsRead() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasNewNotification', true);
+  }
+
+  Future<void> clearNotificationArr() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Xóa toàn bộ thông tin trong 'notificationArr'
+    await prefs.remove('notificationArr');
+  }
+
   Future<void> initNotifications() async {
     // Yêu cầu quyền từ người dùng
     NotificationSettings settings = await _firebaseMessaging
@@ -38,10 +100,7 @@ class NotificationServices {
       return;
     }
     setupMessageHandlers();
-    // List<PendingNotificationRequest> pendingNotifications = await _localNotifications.pendingNotificationRequests();
-    // for (var notification in pendingNotifications) {
-    //   print('ID: ${notification.id}, Title: ${notification.title}, Payload: ${notification.payload}');
-    // }
+
     await initLocalNotifications();
   }
 
@@ -54,11 +113,13 @@ class NotificationServices {
 
     await _localNotifications.initialize(
       settings,
-      onDidReceiveNotificationResponse: (notificationResponse) {
+      onDidReceiveNotificationResponse: (notificationResponse) async {
         final payload = notificationResponse.payload;
         if (payload != null) {
           try {
-            final data = jsonDecode(payload); // Parse JSON từ payload
+            // Parse JSON từ payload
+            final Map<String, dynamic> data = jsonDecode(payload);
+            // Điều hướng đến trang WorkoutDetailView
             navigatorKey.currentState?.push(
               MaterialPageRoute(
                 builder: (context) => WorkoutDetailView(dObj: data),
@@ -81,7 +142,7 @@ class NotificationServices {
   void handleMessage(RemoteMessage? message) {
     if (message == null) return;
 
-    final workoutData = message.data; // Lấy dữ liệu từ thông báo
+    final workoutData = message.data;
     if (workoutData.isNotEmpty) {
       navigatorKey.currentState?.push(
         MaterialPageRoute(
@@ -131,9 +192,7 @@ class NotificationServices {
       icon: 'icon_app',
     );
 
-    const NotificationDetails platformDetails = NotificationDetails(
-      android: androidDetails,
-    );
+    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails,);
     DateTime newScheduledTime = scheduledTime;
 
     // Nếu lặp lại là 'Everyday', kiểm tra xem thời gian đã qua chưa
@@ -172,6 +231,14 @@ class NotificationServices {
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation
             .wallClockTime,
       );
+      // Tạo dữ liệu cho notification
+      final Map<String, dynamic> data = {
+        'id': id_cate,
+        'title': workoutName,
+        'image': pic,
+        'difficulty': diff,
+      };
+      await _addNotificationToArr(data, scheduledTZDateTime); // Pass the scheduled time
     } else if (repeatInterval == 'Everyday') {
       // Thông báo hàng ngày
       await _localNotifications.zonedSchedule(
@@ -191,6 +258,14 @@ class NotificationServices {
             .wallClockTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
+      // Tạo dữ liệu cho notification
+      final Map<String, dynamic> data = {
+        'id': id_cate,
+        'title': workoutName,
+        'image': pic,
+        'difficulty': diff,
+      };
+      await _addNotificationToArr(data, scheduledTZDateTime); // Pass the scheduled time
     } else {
       // Tính toán ngày kết thúc (30 ngày sau)
       final DateTime endDate = scheduledTime.add(Duration(days: 30));
@@ -226,10 +301,17 @@ class NotificationServices {
               'difficulty': diff
             }),
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-            uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation
-                .wallClockTime,
+            uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
             matchDateTimeComponents: DateTimeComponents.time,
           );
+          // Tạo dữ liệu cho notification
+          final Map<String, dynamic> data = {
+            'id': id_cate,
+            'title': workoutName,
+            'image': pic,
+            'difficulty': diff,
+          };
+          await _addNotificationToArr(data, currentScheduledTime);
           //print('Scheduled ${id.hashCode} notification for: $currentScheduledTime');
         }
         // Tính ngày tiếp theo trong tuần
@@ -252,10 +334,17 @@ class NotificationServices {
             'difficulty': diff
           }),
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation
-              .wallClockTime,
+          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
           matchDateTimeComponents: DateTimeComponents.time,
         );
+        // Tạo dữ liệu cho notification
+        final Map<String, dynamic> data = {
+          'id': id_cate,
+          'title': workoutName,
+          'image': pic,
+          'difficulty': diff,
+        };
+        await _addNotificationToArr(data, scheduledTZDateTime); // Pass the scheduled time
       }
     }
     print('Notification ID updated for workout ${id.hashCode}');

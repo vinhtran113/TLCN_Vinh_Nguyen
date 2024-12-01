@@ -85,6 +85,7 @@ class _ProfileViewState extends State<ProfileView> {
               onPressed: () async {
                 // Xóa thông báo và đăng xuất
                 await _localNotifications.cancelAll();
+                await NotificationServices().clearNotificationArr();
                 await AuthService().logOut();
                 // Điều hướng đến LoginView và xóa lịch sử
                 Navigator.of(context).pushAndRemoveUntil(

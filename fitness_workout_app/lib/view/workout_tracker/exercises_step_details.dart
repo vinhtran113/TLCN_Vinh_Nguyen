@@ -199,7 +199,6 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
                 itemCount: widget.eObj.steps.length,
                 itemBuilder: ((context, index ) {
                   var sObj = widget.eObj.steps[index + 1];
-                  print("In cac buoc: $sObj"); // Ghi log danh sách steps để kiểm tra
                   return StepDetailRow(
                     sObj: sObj,
                     index: index,

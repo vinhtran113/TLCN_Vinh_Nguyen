@@ -309,7 +309,7 @@ class _EditScheduleViewState extends State<EditScheduleView> {
                 height: media.width * 0.03,
               ),
               RepetitionsRow(
-                icon: "assets/img/repetitions.png",
+                icon: "assets/img/Repeat.png",
                 title: "Custom Repetitions",
                 color: TColor.lightGray,
                 repetitionController: selectedRepetition,

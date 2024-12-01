@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../common/colo_extension.dart';
 import '../../common/common.dart';
 import '../../common_widget/icon_title_next_row.dart';
+import '../../common_widget/repetition_row.dart';
 import '../../common_widget/round_button.dart';
 
 class SleepAddAlarmView extends StatefulWidget {
@@ -16,8 +17,63 @@ class SleepAddAlarmView extends StatefulWidget {
 }
 
 class _SleepAddAlarmViewState extends State<SleepAddAlarmView> {
+  final TextEditingController selectedRepetition = TextEditingController();
+  bool isBedEnabled = true;
+  bool isWakeupEnabled = true;
+  String selectedTimeBed = "09:00 PM";
+  String selectedTimeWakeup = "06:00 AM";
 
-  bool positive = false;
+  @override
+  void initState() {
+    super.initState();
+    selectedRepetition.text = "no";
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    selectedRepetition.dispose();
+  }
+
+  Future<void> _selectTimeBed(BuildContext context) async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedTime != null) {
+      // Cập nhật thời gian khi chọn
+      setState(() {
+        selectedTimeBed = pickedTime.format(context);
+      });
+    }
+  }
+
+  Future<void> _selectTimeWakeup(BuildContext context) async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedTime != null) {
+      // Cập nhật thời gian khi chọn
+      setState(() {
+        selectedTimeWakeup = pickedTime.format(context);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,134 +114,98 @@ class _SleepAddAlarmViewState extends State<SleepAddAlarmView> {
       body: Container(
         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-
-
-
           const SizedBox(
             height: 8,
           ),
+          Row(
+            children: [
+              Image.asset(
+                "assets/img/date.png",
+                width: 21,
+                height: 21,
+              ),
+              const SizedBox(
+                width: 12,
+              ),
+              Text(
+                dateToString(widget.date, formatStr: "E, dd MMMM yyyy"),
+                style: TextStyle(color: TColor.gray, fontSize: 15),
+              ),
+            ],
+          ),
+          SizedBox(
+            height: media.width * 0.04,
+          ),
           IconTitleNextRow(
-              icon: "assets/img/Bed_Add.png",
-              title: "Bedtime",
-              time: "09:00 PM",
-              color: TColor.lightGray,
-              onPressed: () {}),
+            icon: "assets/img/Bed_Add.png",
+            title: "Bedtime",
+            time: selectedTimeBed,
+            color: TColor.lightGray,
+            onPressed: () => _selectTimeBed(context),
+          ),
           const SizedBox(
             height: 10,
           ),
           IconTitleNextRow(
               icon: "assets/img/HoursTime.png",
               title: "Hours of sleep",
-              time: "8hours 30minutes",
+              time: selectedTimeWakeup,
               color: TColor.lightGray,
-              onPressed: () {}),
+              onPressed: () => _selectTimeWakeup(context)),
           const SizedBox(
             height: 10,
           ),
-          IconTitleNextRow(
-              icon: "assets/img/Repeat.png",
-              title: "Repeat",
-              time: "Mon to Fri",
-              color: TColor.lightGray,
-              onPressed: () {}),
-          const SizedBox(
-            height: 10,
+          RepetitionsRow(
+            icon: "assets/img/Repeat.png",
+            title: "Custom Repetitions",
+            color: TColor.lightGray,
+            repetitionController: selectedRepetition,
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: TColor.lightGray,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-
-                const SizedBox(width: 15,),
-                Container(
-                  width: 30,
-                  height: 30,
-                  alignment: Alignment.center,
-                  child: Image.asset(
-                    "assets/img/Vibrate.png",
-                    width: 18,
-                    height: 18,
-                    fit: BoxFit.contain,
-                  ),
+          const SizedBox(height: 10,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Enable Notifications Bedtime",
+                style: TextStyle(
+                  color: TColor.black,
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    "Vibrate When Alarm Sound",
-                    style: TextStyle(color: TColor.gray, fontSize: 12),
-                  ),
+              ),
+              Switch(
+                value: isBedEnabled,
+                activeColor: TColor.primaryColor1,
+                onChanged: (value) {
+                  setState(() {
+                    isBedEnabled = value;
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Enable Notifications Wakeup",
+                style: TextStyle(
+                  color: TColor.black,
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
                 ),
-
-
-                SizedBox(
-                  height: 30,
-                  child: Transform.scale(
-                    scale: 0.7,
-                    child: CustomAnimatedToggleSwitch<bool>(
-                      current: positive,
-                      values: [false, true],
-                      indicatorSize: const Size.square(30.0),
-                      animationDuration: const Duration(milliseconds: 200),
-                      animationCurve: Curves.linear,
-                      onChanged: (b) {
-                        setState(() {
-                          positive = b;
-                        });
-                      },
-                      iconBuilder: (context, local, global) {
-                        return const SizedBox();
-                      },
-                      iconsTappable: false,
-                      wrapperBuilder: (context, global, child) {
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Positioned(
-                              left: 10.0,
-                              right: 10.0,
-                              height: 30.0,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(colors: TColor.secondaryG),
-                                  borderRadius: const BorderRadius.all(Radius.circular(50.0)),
-                                ),
-                              ),
-                            ),
-                            child,
-                          ],
-                        );
-                      },
-                      foregroundIndicatorBuilder: (context, global) {
-                        return SizedBox.fromSize(
-                          size: const Size(10, 10),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: TColor.white,
-                              borderRadius: const BorderRadius.all(Radius.circular(50.0)),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black38,
-                                  spreadRadius: 0.05,
-                                  blurRadius: 1.1,
-                                  offset: Offset(0.0, 0.8),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-
-
-              ],
-            ),
+              ),
+              Switch(
+                value: isWakeupEnabled,
+                activeColor: TColor.primaryColor1,
+                onChanged: (value) {
+                  setState(() {
+                    isWakeupEnabled = value;
+                  });
+                },
+              ),
+            ],
           ),
           const Spacer(),
           RoundButton(title: "Add", onPressed: () {}),

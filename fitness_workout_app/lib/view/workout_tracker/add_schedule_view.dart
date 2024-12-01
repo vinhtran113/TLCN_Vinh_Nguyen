@@ -263,7 +263,6 @@ class _AddScheduleViewState extends State<AddScheduleView> {
                           fit: BoxFit.contain,
                         ),
                       ),
-
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -300,7 +299,7 @@ class _AddScheduleViewState extends State<AddScheduleView> {
                 height: media.width * 0.03,
               ),
               RepetitionsRow(
-                icon: "assets/img/repetitions.png",
+                icon: "assets/img/Repeat.png",
                 title: "Custom Repetitions",
                 color: TColor.lightGray,
                 repetitionController: selectedRepetition,
@@ -330,7 +329,6 @@ class _AddScheduleViewState extends State<AddScheduleView> {
                   ),
                 ],
               ),
-
               Spacer(),
               RoundButton(
                   title: "Save",

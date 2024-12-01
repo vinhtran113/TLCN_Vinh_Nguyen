@@ -551,8 +551,11 @@ class WorkoutService {
 
       var doc = snapshot.docs.first;
       String id_notify = doc['id_notify'];
+      String id_cate = doc['id_cate'];
 
       await notificationServices.cancelNotificationById(int.parse(id_notify));
+
+      await notificationServices.removeNotification(id_cate);
 
       // Truy cập đến collection 'WorkoutSchedule' và xoá tài liệu theo id
       await FirebaseFirestore.instance
@@ -628,6 +631,7 @@ class WorkoutService {
       }
 
       await notificationServices.cancelNotificationById(int.parse(id_notify));
+      await notificationServices.removeNotification(name);
 
       if(notify) {
         newid_notify = await notificationServices.scheduleWorkoutNotification(

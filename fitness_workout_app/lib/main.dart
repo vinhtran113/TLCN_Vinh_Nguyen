@@ -1,6 +1,5 @@
 import 'package:fitness_workout_app/services/auth.dart';
 import 'package:fitness_workout_app/services/notification.dart';
-import 'package:fitness_workout_app/view/home/notification_view.dart';
 import 'package:fitness_workout_app/view/login/complete_profile_view.dart';
 import 'package:fitness_workout_app/view/login/what_your_goal_view.dart';
 import 'package:fitness_workout_app/view/main_tab/main_tab_view.dart';
@@ -10,12 +9,15 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
 import 'common/colo_extension.dart';
 import 'model/user_model.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
 final darkModeNotifier = ValueNotifier<bool>(false); // Trạng thái toàn cục
+
+final hasNewNotificationNotifier = ValueNotifier<bool>(false); // Trạng thái thông báo mới
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

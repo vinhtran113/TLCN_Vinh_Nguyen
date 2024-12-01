@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../common/colo_extension.dart';
 import '../../common_widget/notification_row.dart';
+import '../../services/notification.dart';
 
 class NotificationView extends StatefulWidget {
   const NotificationView({super.key});
@@ -12,14 +13,35 @@ class NotificationView extends StatefulWidget {
 }
 
 class _NotificationViewState extends State<NotificationView> {
-  List notificationArr = [
-    {"image": "assets/img/Workout1.png", "title": "Hey, it’s time for lunch", "time": "About 1 minutes ago"},
-    {"image": "assets/img/Workout2.png", "title": "Don’t miss your lowerbody workout", "time": "About 3 hours ago"},
-    {"image": "assets/img/Workout3.png", "title": "Hey, let’s add some meals for your b", "time": "About 3 hours ago"},
-    {"image": "assets/img/Workout1.png", "title": "Congratulations, You have finished A..", "time": "29 May"},
-    {"image": "assets/img/Workout2.png", "title": "Hey, it’s time for lunch", "time": "8 April"},
-    {"image": "assets/img/Workout3.png", "title": "Ups, You have missed your Lowerbo...", "time": "8 April"},
-  ];
+  List<Map<String, String>> notificationArr = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadNotifications(); // Gọi hàm tải dữ liệu
+  }
+
+  Future<void> loadNotifications() async {
+    final loadedNotifications = await NotificationServices().loadNotificationArr();
+
+    // Lọc các thông báo có thời gian trong quá khứ
+    final currentDateTime = DateTime.now();
+    final filteredNotifications = loadedNotifications.where((notification) {
+      DateTime notificationDate = DateTime.parse(notification['time']!);
+      return notificationDate.isBefore(currentDateTime); // Giữ lại thông báo trong quá khứ
+    }).toList();
+
+    // Sắp xếp danh sách thông báo theo ngày từ tương lai đến quá khứ
+    filteredNotifications.sort((a, b) {
+      DateTime dateA = DateTime.parse(a['time']!); // Chuyển đổi chuỗi thành DateTime
+      DateTime dateB = DateTime.parse(b['time']!);
+      return dateB.compareTo(dateA); // Sắp xếp theo thứ tự tăng dần
+    });
+
+    setState(() {
+      notificationArr = filteredNotifications;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
