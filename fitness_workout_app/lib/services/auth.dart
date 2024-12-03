@@ -270,9 +270,58 @@ class AuthService {
       DocumentSnapshot userDoc = querySnapshot.docs.first;
       String uid = userDoc['uid'];
       String oldPass = userDoc['password'];
-      if (!userDoc.exists) {
-        return "OTP không tồn tại.";
+
+      var data = userDoc.data() as Map<String, dynamic>?;
+      if (data == null) return "OTP không hợp lệ.";
+      int expiresAt = data['expiresAt'];
+      String storedOtp = data['otp'];
+      if (DateTime.now().millisecondsSinceEpoch > expiresAt) {
+        return "OTP đã hết hạn.";
       }
+      if (storedOtp != otp) {
+        return "OTP không đúng.";
+      }
+      await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: oldPass,
+      );
+      // Lấy thông tin người dùng hiện tại sau khi đăng nhập
+      User? user = _auth.currentUser;
+      if (user == null) {
+        return "Không tìm thấy người dùng.";
+      }
+      // Cập nhật mật khẩu mới
+      await user.updatePassword(newPass);
+      await _auth.signOut();
+      await _firestore.collection("users").doc(uid).update({
+        'password': newPass,
+      });
+      return "success";
+    }catch(e) {
+      return 'Có lỗi xảy ra: $e';
+    }
+  }
+
+  Future<String> changePassword(String email, String oldPassword, String newPass, String confirmPass, String otp) async {
+    try {
+
+      QuerySnapshot querySnapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .get();
+
+      // Giả sử chỉ có một tài liệu khớp
+      DocumentSnapshot userDoc = querySnapshot.docs.first;
+      String uid = userDoc['uid'];
+      String oldPass = userDoc['password'];
+      if (oldPass != oldPassword){
+        return "Mật khẩu của bạn không chính xác";
+      }
+
+      if( newPass != confirmPass){
+        return "Mật khẩu mới và mật khẩu xác nhận không khớp";
+      }
+
       var data = userDoc.data() as Map<String, dynamic>?;
       if (data == null) return "OTP không hợp lệ.";
       int expiresAt = data['expiresAt'];

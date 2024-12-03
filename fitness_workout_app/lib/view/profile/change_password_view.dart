@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_workout_app/common/colo_extension.dart';
 import 'package:fitness_workout_app/common_widget/round_button.dart';
 import 'package:fitness_workout_app/common_widget/round_textfield.dart';
@@ -5,16 +6,19 @@ import 'package:fitness_workout_app/view/login/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:fitness_workout_app/services/auth.dart';
 
-class ResetPasswordView extends StatefulWidget {
-  const ResetPasswordView({super.key});
+import '../../model/user_model.dart';
+
+class ChangePasswordView extends StatefulWidget {
+  const ChangePasswordView({super.key});
 
   @override
-  State<ResetPasswordView> createState() => _ResetPasswordView();
+  State<ChangePasswordView> createState() => _ChangePasswordView();
 }
 
-class _ResetPasswordView extends State<ResetPasswordView> {
+class _ChangePasswordView extends State<ChangePasswordView> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController oldPasswordController = TextEditingController();
   final TextEditingController confirmPassController = TextEditingController();
   final TextEditingController otpController = TextEditingController();
   bool isCheck = false;
@@ -22,21 +26,10 @@ class _ResetPasswordView extends State<ResetPasswordView> {
   bool obscureText1 = true;
 
   void getOTP() async {
-    setState(() {
-      isCheck = true;
-    });
-
     try {
-      if (emailController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Vui lòng nhập email để nhận OTP')),
-        );
-        setState(() {
-          isCheck = false;
-        });
-      } else {
-        String res = await AuthService().sendOtpEmailResetPass(
-            emailController.text.trim());
+      UserModel? user = await AuthService().getUserInfo(
+          FirebaseAuth.instance.currentUser!.uid);
+        String res = await AuthService().sendOtpEmailResetPass(user!.email);
         if (res == "success") {
           setState(() {
             isCheck = false;
@@ -52,7 +45,6 @@ class _ResetPasswordView extends State<ResetPasswordView> {
             SnackBar(content: Text(res)),
           );
         }
-      }
     }catch (e) {
       setState(() {
         isCheck = false;
@@ -69,7 +61,9 @@ class _ResetPasswordView extends State<ResetPasswordView> {
     });
 
     try {
-      if (emailController.text.isEmpty || passwordController.text.isEmpty
+      UserModel? user = await AuthService().getUserInfo(
+          FirebaseAuth.instance.currentUser!.uid);
+      if (oldPasswordController.text.isEmpty || passwordController.text.isEmpty
           || confirmPassController.text.isEmpty || otpController.text.isEmpty) {
         setState(() {
           isCheck = false;
@@ -77,18 +71,12 @@ class _ResetPasswordView extends State<ResetPasswordView> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Vui lòng điền đầy đủ thông tin')),
         );
-      } else
-      if (passwordController.text.trim() != confirmPassController.text.trim()) {
-        setState(() {
-          isCheck = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Xác nhận mật khẩu không chính xác')),
-        );
       } else {
-        String res = await AuthService().resetPassword(
-            emailController.text.trim(),
+        String res = await AuthService().changePassword(
+            user!.email,
+            oldPasswordController.text.trim(),
             passwordController.text.trim(),
+            confirmPassController.text.trim(),
             otpController.text.trim());
         if (res == "success") {
           setState(() {
@@ -208,10 +196,32 @@ class _ResetPasswordView extends State<ResetPasswordView> {
                       height: media.width * 0.05,
                     ),
                     RoundTextField(
-                      hitText: "Email",
-                      icon: "assets/img/email.png",
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      hitText: "Old Password",
+                      icon: "assets/img/lock.png",
+                      controller: oldPasswordController,
+                      obscureText: obscureText,
+                      rigtIcon: TextButton(
+                        onPressed: () {
+                          setState(() {
+                            obscureText = !obscureText;
+                          });
+                        },
+                        child: Container(
+                          alignment: Alignment.center,
+                          width: 20,
+                          height: 20,
+                          child: Image.asset(
+                            obscureText
+                                ? "assets/img/hide_password.png"
+                                : "assets/img/show_password.png",
+                            // Cập nhật icon
+                            width: 20,
+                            height: 20,
+                            fit: BoxFit.contain,
+                            color: TColor.gray,
+                          ),
+                        ),
+                      ),
                     ),
                     SizedBox(
                       height: media.width * 0.04,
@@ -303,7 +313,7 @@ class _ResetPasswordView extends State<ResetPasswordView> {
                       height: media.width * 0.06,
                     ),
                     RoundButton(
-                        title: "Reset Password",
+                        title: "Change Password",
                         onPressed: handleResetpassword
                     ),
                   ],

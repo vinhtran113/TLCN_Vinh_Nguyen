@@ -461,24 +461,25 @@ class WorkoutService {
         'id_cate': id_workout,
         'pic': pic,
       };
-
       DocumentReference docRef = await workoutScheduleRef.add(workoutData);
-
-      // Đặt lịch thông báo
-      String id_notify = await notificationServices.scheduleWorkoutNotification(
-        id: docRef.id,
-        scheduledTime: selectedDateTime,
-        workoutName: name,
-        repeatInterval: repeatInterval,
-        id_cate: id_workout,
-        pic: pic,
-        diff: difficulty,
-      );
-
       await docRef.update({
         'id': docRef.id,
-        'id_notify': id_notify,
       });
+      if(notify) {
+        // Đặt lịch thông báo
+        String id_notify = await notificationServices.scheduleWorkoutNotification(
+          id: docRef.id,
+          scheduledTime: selectedDateTime,
+          workoutName: name,
+          repeatInterval: repeatInterval,
+          id_cate: id_workout,
+          pic: pic,
+          diff: difficulty,
+        );
+        await docRef.update({
+          'id_notify': id_notify,
+        });
+      }
 
       res = "success";
     } catch (e) {

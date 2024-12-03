@@ -9,7 +9,6 @@ import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../view/workout_tracker/workour_detail_view.dart';
 
 class NotificationServices {
@@ -23,6 +22,23 @@ class NotificationServices {
     description: 'This channel is used for workout reminders',
     importance: Importance.max,
   );
+
+  final AndroidNotificationChannel _sleepChannel = const AndroidNotificationChannel(
+    'sleep_channel',
+    'Sleep Notifications',
+    description: 'This channel is used for bedtime reminders',
+    importance: Importance.max,
+    sound: RawResourceAndroidNotificationSound('alarm'),
+  );
+
+  final AndroidNotificationChannel _wakeUpChannel = const AndroidNotificationChannel(
+    'wake_up_channel',
+    'Wake Up Notifications',
+    description: 'This channel is used for wake-up alarms',
+    importance: Importance.max,
+    sound: RawResourceAndroidNotificationSound('alarm'),
+  );
+
 
   NotificationServices() {
     // Khởi tạo múi giờ
@@ -73,7 +89,6 @@ class NotificationServices {
       final Map<String, dynamic> notificationData = jsonDecode(item);
       return notificationData['id'] == notificationId; // Kiểm tra ID
     });
-
     // Lưu lại danh sách đã cập nhật
     await prefs.setStringList('notificationArr', notificationArr);
   }
@@ -106,8 +121,7 @@ class NotificationServices {
 
   Future<void> initLocalNotifications() async {
     const DarwinInitializationSettings iOS = DarwinInitializationSettings();
-    const AndroidInitializationSettings android = AndroidInitializationSettings(
-        '@drawable/icon_app');
+    const AndroidInitializationSettings android = AndroidInitializationSettings('@drawable/icon_app');
     const InitializationSettings settings = InitializationSettings(
         android: android, iOS: iOS);
 
@@ -137,6 +151,9 @@ class NotificationServices {
     final platform = _localNotifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     await platform?.createNotificationChannel(_androidChannel);
+    await platform?.createNotificationChannel(_sleepChannel);
+    await platform?.createNotificationChannel(_wakeUpChannel);
+
   }
 
   void handleMessage(RemoteMessage? message) {
@@ -174,6 +191,208 @@ class NotificationServices {
     });
   }
 
+  Future<String> scheduleBedtimeNotification({
+    required String id,
+    required DateTime bedtime,
+    required String repeatInterval,
+  }) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'sleep_channel',
+      'Sleep Notifications',
+      channelDescription: 'This channel is used for bedtime reminders',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: 'icon_app',
+      sound: RawResourceAndroidNotificationSound('alarm'),
+    );
+    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
+    DateTime newScheduledTime = bedtime;
+    // Nếu lặp lại là 'Everyday', kiểm tra xem thời gian đã qua chưa
+    if (repeatInterval == 'Everyday') {
+      if (newScheduledTime.isBefore(DateTime.now())) {
+        newScheduledTime = newScheduledTime.add(const Duration(days: 1));
+      }
+    }
+    // Nếu lặp lại là các ngày trong tuần (Monday, Friday)
+    else if (repeatInterval.contains(',')) {
+      newScheduledTime = _getNextWeekdayWithSameTime(
+          DateTime.now(), repeatInterval, bedtime);
+    }
+    final tz.TZDateTime scheduledTZDateTime = tz.TZDateTime.from(newScheduledTime, tz.local);
+    if (repeatInterval == 'no') {
+      // Thông báo một lần
+      await _localNotifications.zonedSchedule(
+        id.hashCode,
+        'Bedtime Reminder',
+        'It\'s time to prepare for bed!',
+        scheduledTZDateTime,
+        platformDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+      );
+    } else if (repeatInterval == 'Everyday') {
+      // Thông báo hàng ngày
+      await _localNotifications.zonedSchedule(
+        id.hashCode,
+        'Bedtime Reminder',
+        'It\'s time to prepare for bed!',
+        scheduledTZDateTime,
+        platformDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    } else {
+      // Tính toán ngày kết thúc (30 ngày sau)
+      final DateTime endDate = bedtime.add(Duration(days: 30));
+      final tz.TZDateTime endTZDateTime = tz.TZDateTime.from(endDate, tz.local);
+      // Chia danh sách các ngày lặp lại
+      List<String> daysOfWeek = repeatInterval.split(',');
+      Set<int> weekdaysSet = {};
+      for (String day in daysOfWeek) {
+        final int weekday = _getWeekdayFromString(day.trim());
+        if (weekday != -1) {
+          weekdaysSet.add(weekday);
+        }
+      }
+      // Duyệt qua các ngày trong tuần và lên lịch thông báo
+      tz.TZDateTime currentScheduledTime = scheduledTZDateTime;
+      while (currentScheduledTime.isBefore(endTZDateTime)) {
+        if (weekdaysSet.contains(currentScheduledTime.weekday)) {
+          // Nếu ngày trong tuần nằm trong danh sách, lên lịch thông báo
+          await _localNotifications.zonedSchedule(
+            id.hashCode,
+            'Bedtime Reminder',
+            'It\'s time to prepare for bed!',
+            currentScheduledTime,
+            platformDetails,
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+            matchDateTimeComponents: DateTimeComponents.time,
+          );
+        }
+        // Tính ngày tiếp theo trong tuần
+        currentScheduledTime = _nextInstanceOfWeekday(currentScheduledTime, weekdaysSet);
+      }
+      // Kiểm tra nếu ngày lên lịch không nằm trong danh sách, thêm vào
+      if (!weekdaysSet.contains(scheduledTZDateTime.weekday)) {
+        // Lên lịch thông báo cho ngày lên lịch ban đầu
+        await _localNotifications.zonedSchedule(
+          id.hashCode,
+          'Bedtime Reminder',
+          'It\'s time to prepare for bed!',
+          scheduledTZDateTime,
+          platformDetails,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+        );
+      }
+    }
+    print('Notification ID updated for bedtime ${id.hashCode}');
+    return id.hashCode.toString();
+  }
+
+  Future<String> scheduleWakeUpNotification({
+    required String id,
+    required DateTime wakeUpTime,
+    required String repeatInterval,
+  }) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'wake_up_channel',
+      'Wake Up Notifications',
+      channelDescription: 'This channel is used for wake-up alarms',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: 'icon_app',
+      sound: RawResourceAndroidNotificationSound('alarm'),
+    );
+    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
+    DateTime newScheduledTime = wakeUpTime;
+    // Nếu lặp lại là 'Everyday', kiểm tra xem thời gian đã qua chưa
+    if (repeatInterval == 'Everyday') {
+      if (newScheduledTime.isBefore(DateTime.now())) {
+        newScheduledTime = newScheduledTime.add(const Duration(days: 1));
+      }
+    }
+    // Nếu lặp lại là các ngày trong tuần (Monday, Friday)
+    else if (repeatInterval.contains(',')) {
+      newScheduledTime = _getNextWeekdayWithSameTime(
+          DateTime.now(), repeatInterval, wakeUpTime);
+    }
+    final tz.TZDateTime scheduledTZDateTime = tz.TZDateTime.from(newScheduledTime, tz.local);
+    if (repeatInterval == 'no') {
+      // Thông báo một lần
+      await _localNotifications.zonedSchedule(
+        id.hashCode + 1,
+        'Wake Up Alarm',
+        'Time to wake up and start your day!',
+        scheduledTZDateTime,
+        platformDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+      );
+    } else if (repeatInterval == 'Everyday') {
+      // Thông báo hàng ngày
+      await _localNotifications.zonedSchedule(
+        id.hashCode + 1,
+        'Wake Up Alarm',
+        'Time to wake up and start your day!',
+        scheduledTZDateTime,
+        platformDetails,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+        matchDateTimeComponents: DateTimeComponents.time,
+      );
+    } else {
+      // Tính toán ngày kết thúc (30 ngày sau)
+      final DateTime endDate = wakeUpTime.add(Duration(days: 30));
+      final tz.TZDateTime endTZDateTime = tz.TZDateTime.from(endDate, tz.local);
+      // Chia danh sách các ngày lặp lại
+      List<String> daysOfWeek = repeatInterval.split(',');
+      Set<int> weekdaysSet = {};
+      for (String day in daysOfWeek) {
+        final int weekday = _getWeekdayFromString(day.trim());
+        if (weekday != -1) {
+          weekdaysSet.add(weekday);
+        }
+      }
+      // Duyệt qua các ngày trong tuần và lên lịch thông báo
+      tz.TZDateTime currentScheduledTime = scheduledTZDateTime;
+      while (currentScheduledTime.isBefore(endTZDateTime)) {
+        if (weekdaysSet.contains(currentScheduledTime.weekday)) {
+          // Nếu ngày trong tuần nằm trong danh sách, lên lịch thông báo
+          await _localNotifications.zonedSchedule(
+            id.hashCode + 1,
+            'Wake Up Alarm',
+            'Time to wake up and start your day!',
+            currentScheduledTime,
+            platformDetails,
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+            matchDateTimeComponents: DateTimeComponents.time,
+          );
+        }
+        // Tính ngày tiếp theo trong tuần
+        currentScheduledTime = _nextInstanceOfWeekday(currentScheduledTime, weekdaysSet);
+      }
+      // Kiểm tra nếu ngày lên lịch không nằm trong danh sách, thêm vào
+      if (!weekdaysSet.contains(scheduledTZDateTime.weekday)) {
+        // Lên lịch thông báo cho ngày lên lịch ban đầu
+        await _localNotifications.zonedSchedule(
+          id.hashCode + 1,
+          'Wake Up Alarm',
+          'Time to wake up and start your day!',
+          scheduledTZDateTime,
+          platformDetails,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.wallClockTime,
+        );
+      }
+    }
+    print('Notification ID updated for wakeup ${id.hashCode +1 }');
+    return id.hashCode.toString();
+  }
+
   Future<String> scheduleWorkoutNotification({
     required String id,
     required DateTime scheduledTime,
@@ -191,15 +410,12 @@ class NotificationServices {
       priority: Priority.high,
       icon: 'icon_app',
     );
-
     const NotificationDetails platformDetails = NotificationDetails(android: androidDetails,);
     DateTime newScheduledTime = scheduledTime;
-
     // Nếu lặp lại là 'Everyday', kiểm tra xem thời gian đã qua chưa
     if (repeatInterval == 'Everyday') {
       if (newScheduledTime.isBefore(DateTime.now())) {
-        newScheduledTime = newScheduledTime.add(Duration(
-            days: 1)); // Nếu thời gian đã qua, chuyển sang ngày hôm sau
+        newScheduledTime = newScheduledTime.add(const Duration(days: 1));
       }
     }
     // Nếu lặp lại là các ngày trong tuần (Monday, Friday)
@@ -207,12 +423,7 @@ class NotificationServices {
       newScheduledTime = _getNextWeekdayWithSameTime(
           DateTime.now(), repeatInterval, scheduledTime);
     }
-
-    final tz.TZDateTime scheduledTZDateTime = tz.TZDateTime.from(
-        newScheduledTime, tz.local);
-
-    //print('Scheduled Time: $scheduledTZDateTime');
-
+    final tz.TZDateTime scheduledTZDateTime = tz.TZDateTime.from(newScheduledTime, tz.local);
     if (repeatInterval == 'no') {
       // Thông báo một lần
       await _localNotifications.zonedSchedule(
@@ -270,21 +481,17 @@ class NotificationServices {
       // Tính toán ngày kết thúc (30 ngày sau)
       final DateTime endDate = scheduledTime.add(Duration(days: 30));
       final tz.TZDateTime endTZDateTime = tz.TZDateTime.from(endDate, tz.local);
-
       // Chia danh sách các ngày lặp lại
       List<String> daysOfWeek = repeatInterval.split(',');
       Set<int> weekdaysSet = {};
-
       for (String day in daysOfWeek) {
         final int weekday = _getWeekdayFromString(day.trim());
         if (weekday != -1) {
           weekdaysSet.add(weekday);
         }
       }
-
       // Duyệt qua các ngày trong tuần và lên lịch thông báo
       tz.TZDateTime currentScheduledTime = scheduledTZDateTime;
-
       while (currentScheduledTime.isBefore(endTZDateTime)) {
         if (weekdaysSet.contains(currentScheduledTime.weekday)) {
           // Nếu ngày trong tuần nằm trong danh sách, lên lịch thông báo
@@ -317,7 +524,6 @@ class NotificationServices {
         // Tính ngày tiếp theo trong tuần
         currentScheduledTime = _nextInstanceOfWeekday(currentScheduledTime, weekdaysSet);
       }
-
       // Kiểm tra nếu ngày lên lịch không nằm trong danh sách, thêm vào
       if (!weekdaysSet.contains(scheduledTZDateTime.weekday)) {
         // Lên lịch thông báo cho ngày lên lịch ban đầu
@@ -356,25 +562,21 @@ class NotificationServices {
     // Chuyển đổi các ngày trong tuần từ chuỗi 'Monday,Friday' thành danh sách các ngày trong tuần
     List<String> daysOfWeek = repeatInterval.split(',');
     List<int> weekdaysSet = [];
-
     for (String day in daysOfWeek) {
       final int weekday = _getWeekdayFromString(day.trim());
       if (weekday != -1) {
         weekdaysSet.add(weekday);
       }
     }
-
     // Lưu giờ ban đầu để giữ nguyên
     DateTime newScheduledTime = DateTime(
         currentDateTime.year, currentDateTime.month, currentDateTime.day,
         originalScheduledTime.hour, originalScheduledTime.minute);
-
     // Tìm ngày gần nhất trong tuần cho mỗi ngày yêu cầu
     while (!weekdaysSet.contains(newScheduledTime.weekday)) {
       newScheduledTime = newScheduledTime.add(
           Duration(days: 1)); // Tìm ngày tiếp theo trong tuần
     }
-
     // Kiểm tra xem thời gian có qua chưa, nếu có, chuyển sang ngày tiếp theo
     if (newScheduledTime.isBefore(currentDateTime)) {
       newScheduledTime = newScheduledTime.add(
@@ -405,14 +607,11 @@ class NotificationServices {
   }
 
 // Cập nhật để tránh lặp vô hạn và chỉ lấy các ngày trong tuần cần thông báo
-  tz.TZDateTime _nextInstanceOfWeekday(tz.TZDateTime dateTime,
-      Set<int> weekdaysSet) {
+  tz.TZDateTime _nextInstanceOfWeekday(tz.TZDateTime dateTime, Set<int> weekdaysSet) {
     tz.TZDateTime scheduledDate = tz.TZDateTime.from(dateTime, tz.local);
-
     do {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     } while (!weekdaysSet.contains(scheduledDate.weekday));
-
     return scheduledDate;
   }
 
@@ -437,11 +636,9 @@ class NotificationServices {
           .collection('WorkoutSchedule')
           .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
           .get();
-
       // Duyệt qua các lịch và lên lịch lại thông báo
       for (var workoutScheduleDoc in workoutScheduleSnapshot.docs) {
         bool notify = workoutScheduleDoc['notify']; // Kiểm tra trường notify
-
         // Nếu notify là false, bỏ qua và không làm gì
         if (!notify) {
           continue; // Bỏ qua tài liệu này và tiếp tục với tài liệu tiếp theo

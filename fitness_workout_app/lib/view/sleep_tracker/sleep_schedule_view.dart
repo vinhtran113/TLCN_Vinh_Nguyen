@@ -218,59 +218,6 @@ class _SleepScheduleViewState extends State<SleepScheduleView> {
                         sObj: sObj,
                       );
                     }),
-                Container(
-                    width: double.maxFinite,
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 20),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [
-                          TColor.secondaryColor2.withOpacity(0.4),
-                          TColor.secondaryColor1.withOpacity(0.4)
-                        ]),
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "You will get 8hours 10minutes\nfor tonight",
-                          style: TextStyle(
-                            color: TColor.black,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SimpleAnimationProgressBar(
-                              height: 15,
-                              width: media.width - 80,
-                              backgroundColor: Colors.grey.shade100,
-                              foregrondColor: Colors.purple,
-                              ratio: 0.96,
-                              direction: Axis.horizontal,
-                              curve: Curves.fastLinearToSlowEaseIn,
-                              duration: const Duration(seconds: 3),
-                              borderRadius: BorderRadius.circular(7.5),
-                              gradientColor: LinearGradient(
-                                  colors: TColor.secondaryG,
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight),
-                            ),
-                            Text(
-                              "96%",
-                              style: TextStyle(
-                                color: TColor.black,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    )),
               ],
             ),
             SizedBox(
@@ -280,8 +227,13 @@ class _SleepScheduleViewState extends State<SleepScheduleView> {
         ),
       ),
       floatingActionButton: InkWell(
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          DateTime now = DateTime.now();
+          DateTime startOfDay = DateTime(now.year, now.month, now.day);
+          if (_selectedDateAppBBar.isBefore(startOfDay)) {
+            return;
+          }
+          final result = Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => SleepAddAlarmView(
@@ -289,6 +241,9 @@ class _SleepScheduleViewState extends State<SleepScheduleView> {
               ),
             ),
           );
+          if (result == true) {
+            //_loadWorkOutSchedule();
+          }
         },
         child: Container(
           width: 55,

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fitness_workout_app/common/colo_extension.dart';
-import 'package:fitness_workout_app/view/login/reset_password_view.dart';
 import 'package:fitness_workout_app/view/main_tab/main_tab_view.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,6 +12,7 @@ import '../../common_widget/round_textfield.dart';
 import '../../common_widget/selectDate.dart';
 import '../../model/user_model.dart';
 import '../../services/auth.dart';
+import 'change_password_view.dart';
 
 class EditProfileView extends StatefulWidget {
   final UserModel user;
@@ -425,7 +425,7 @@ class _EditProfileViewState extends State<EditProfileView> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (
-                                      context) => const ResetPasswordView(),
+                                      context) => const ChangePasswordView(),
                                 ),
                               );
                             },
