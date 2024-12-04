@@ -4,6 +4,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../common/colo_extension.dart';
+
 class StatisticsChartView extends StatefulWidget {
   const StatisticsChartView({super.key});
 
@@ -12,7 +14,7 @@ class StatisticsChartView extends StatefulWidget {
 }
 
 class _StatisticsChartViewState extends State<StatisticsChartView> {
-  String _selectedView = "Month"; // Chế độ mặc định: Xem theo tháng
+  String _selectedView = "Month";
 
   Future<Map<String, double>> fetchCaloriesData() async {
     // Lấy dữ liệu từ Firebase
@@ -48,8 +50,36 @@ class _StatisticsChartViewState extends State<StatisticsChartView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Calories Burned Chart"),
+        backgroundColor: TColor.white,
+        centerTitle: true,
+        elevation: 0,
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            height: 40,
+            width: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+                color: TColor.lightGray,
+                borderRadius: BorderRadius.circular(10)),
+            child: Image.asset(
+              "assets/img/black_btn.png",
+              width: 15,
+              height: 15,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+        title: Text(
+          "Calories Burned Chart",
+          style: TextStyle(
+              color: TColor.black, fontSize: 16, fontWeight: FontWeight.w700),
+        ),
       ),
+      backgroundColor: TColor.white,
       body: Column(
         children: [
           // Dropdown chọn chế độ xem
@@ -97,7 +127,7 @@ class _StatisticsChartViewState extends State<StatisticsChartView> {
                     barRods: [
                       BarChartRodData(
                         toY: calories,
-                        color: Colors.blue,
+                        color: TColor.primary,
                         width: 15,
                       ),
                     ],
@@ -108,6 +138,7 @@ class _StatisticsChartViewState extends State<StatisticsChartView> {
                   padding: const EdgeInsets.all(16.0),
                   child: BarChart(
                     BarChartData(
+                      maxY: 30000,
                       barGroups: barGroups,
                       titlesData: FlTitlesData(
                         leftTitles: AxisTitles(
@@ -117,10 +148,10 @@ class _StatisticsChartViewState extends State<StatisticsChartView> {
                           sideTitles: SideTitles(
                             showTitles: true,
                             reservedSize: 40,
-                            interval: 200, // Khoảng cách giữa các điểm trên trục Y
+                            interval: 1000, // Khoảng cách giữa các điểm trên trục Y
                             getTitlesWidget: (value, meta) {
                               return Text(
-                                '${value.toInt()} KCal',
+                                '${value.toInt()}',
                                 style: const TextStyle(fontSize: 12),
                               );
                             },
@@ -148,7 +179,7 @@ class _StatisticsChartViewState extends State<StatisticsChartView> {
                       ),
                       gridData: FlGridData(
                         show: true,
-                        horizontalInterval: 200, // Đường kẻ ngang tương ứng khoảng cách trục Y
+                        horizontalInterval: 500, // Đường kẻ ngang tương ứng khoảng cách trục Y
                       ),
                     ),
                   ),

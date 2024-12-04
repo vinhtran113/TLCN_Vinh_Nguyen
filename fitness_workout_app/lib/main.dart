@@ -17,8 +17,6 @@ final navigatorKey = GlobalKey<NavigatorState>();
 
 final darkModeNotifier = ValueNotifier<bool>(false); // Trạng thái toàn cục
 
-final hasNewNotificationNotifier = ValueNotifier<bool>(false); // Trạng thái thông báo mới
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -43,7 +41,7 @@ class MyApp extends StatelessWidget {
           title: 'Fitness 3 in 1',
           debugShowCheckedModeBanner: false,
           navigatorKey: navigatorKey,
-          theme: isDarkMode ? _darkTheme : _lightTheme, // Chọn theme
+          theme: isDarkMode ? _darkTheme : _lightTheme,
           home: FutureBuilder<Widget>(
             future: _getInitialScreen(),
             builder: (context, snapshot) {

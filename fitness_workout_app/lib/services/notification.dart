@@ -93,12 +93,6 @@ class NotificationServices {
     await prefs.setStringList('notificationArr', notificationArr);
   }
 
-  // Cập nhật trạng thái thông báo mới khi người dùng nhấn vào
-  Future<void> _markNotificationsAsRead() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('hasNewNotification', true);
-  }
-
   Future<void> clearNotificationArr() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -210,7 +204,7 @@ class NotificationServices {
     // Nếu lặp lại là 'Everyday', kiểm tra xem thời gian đã qua chưa
     if (repeatInterval == 'Everyday') {
       if (newScheduledTime.isBefore(DateTime.now())) {
-        newScheduledTime = newScheduledTime.add(const Duration(days: 1));
+        newScheduledTime = DateTime.now().add(const Duration(days: 1));
       }
     }
     // Nếu lặp lại là các ngày trong tuần (Monday, Friday)
@@ -311,7 +305,7 @@ class NotificationServices {
     // Nếu lặp lại là 'Everyday', kiểm tra xem thời gian đã qua chưa
     if (repeatInterval == 'Everyday') {
       if (newScheduledTime.isBefore(DateTime.now())) {
-        newScheduledTime = newScheduledTime.add(const Duration(days: 1));
+        newScheduledTime = DateTime.now().add(const Duration(days: 1));
       }
     }
     // Nếu lặp lại là các ngày trong tuần (Monday, Friday)
@@ -415,7 +409,7 @@ class NotificationServices {
     // Nếu lặp lại là 'Everyday', kiểm tra xem thời gian đã qua chưa
     if (repeatInterval == 'Everyday') {
       if (newScheduledTime.isBefore(DateTime.now())) {
-        newScheduledTime = newScheduledTime.add(const Duration(days: 1));
+        newScheduledTime = DateTime.now().add(const Duration(days: 1));
       }
     }
     // Nếu lặp lại là các ngày trong tuần (Monday, Friday)
@@ -685,6 +679,78 @@ class NotificationServices {
           'id_notify': id_notify, // Cập nhật id_notify với giá trị đã lấy
         });
         print('Notification ID updated for workout ${workoutScheduleDoc.id}');
+      }
+
+      var alarmScheduleSnapshot = await _firestore
+          .collection('Alarm')
+          .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+          .get();
+
+      for (var alarmScheduleDoc in alarmScheduleSnapshot.docs) {
+        bool notify_Bed = alarmScheduleDoc['notify_Bed'];
+        bool notify_Wakeup = alarmScheduleDoc['notify_Wakeup'];
+
+        if (!notify_Bed && !notify_Wakeup) {
+          continue;
+        }
+        var alarmId = alarmScheduleDoc['id'];
+        var hourBed = alarmScheduleDoc['hourBed'];
+        var hourWakeup = alarmScheduleDoc['hourWakeup'];
+        var day = alarmScheduleDoc['day'];
+        var repeatInterval = alarmScheduleDoc['repeat_interval'];
+        var id_notify = alarmScheduleDoc['id_notify'];
+
+        // Chuyển đổi chuỗi ngày và giờ thành DateTime
+        final DateFormat dateFormat = DateFormat('dd/MM/yyyy');
+        final DateFormat hourFormat = DateFormat('hh:mm a');
+        DateTime selectedDay = dateFormat.parse(day);
+        DateTime selectedHourBed = hourFormat.parse(hourBed);
+        DateTime selectedHourWakeup = hourFormat.parse(hourWakeup);
+
+        DateTime selectedDateTimeBed = DateTime(
+          selectedDay.year,
+          selectedDay.month,
+          selectedDay.day,
+          selectedHourBed.hour,
+          selectedHourBed.minute,
+        );
+
+        DateTime selectedDateTimeWakeup = DateTime(
+          selectedDay.year,
+          selectedDay.month,
+          selectedDay.day,
+          selectedHourWakeup.hour,
+          selectedHourWakeup.minute,
+        );
+
+        if (selectedDateTimeWakeup.isBefore(selectedDateTimeBed)) {
+          selectedDateTimeWakeup = selectedDateTimeWakeup.add(const Duration(days: 1));
+        }
+
+        // Kiểm tra nếu lịch là trong quá khứ và không phải lịch lặp lại
+        if (selectedDateTimeBed.isBefore(DateTime.now()) && repeatInterval == 'no') {
+          continue;
+        }
+
+        if(notify_Bed) {
+          id_notify = await scheduleBedtimeNotification(
+            id: alarmId,
+            bedtime: selectedDateTimeBed,
+            repeatInterval: repeatInterval,
+          );
+        }
+        if(notify_Wakeup) {
+          id_notify = await scheduleWakeUpNotification(
+              id: alarmId,
+              wakeUpTime: selectedDateTimeWakeup,
+              repeatInterval: repeatInterval
+          );
+        }
+
+        await _firestore
+            .collection('Alarm')
+            .doc(alarmScheduleDoc.id)
+            .update({'id_notify': id_notify,});
       }
       res = "success";
     } catch (err) {

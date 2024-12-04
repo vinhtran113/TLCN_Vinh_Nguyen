@@ -140,24 +140,7 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
               centerTitle: true,
               elevation: 0,
               // pinned: true,
-              leading: InkWell(
-                onTap: getUserInfo,
-                child: Container(
-                  margin: const EdgeInsets.all(8),
-                  height: 40,
-                  width: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      color: TColor.lightGray,
-                      borderRadius: BorderRadius.circular(10)),
-                  child: Image.asset(
-                    "assets/img/black_btn.png",
-                    width: 15,
-                    height: 15,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
+              leading: const SizedBox(),
               title: Text(
                 "Workout Tracker",
                 style: TextStyle(
@@ -182,38 +165,6 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                     lineTouchData: LineTouchData(
                       enabled: true,
                       handleBuiltInTouches: true,
-                      // touchCallback: (FlTouchEvent event, LineTouchResponse? response) {
-                      //   if (event.isInterestedForInteractions && response != null && response.lineBarSpots != null) {
-                      //     final touchedSpot = response.lineBarSpots!.first;
-                      //     final touchedX = touchedSpot.x;
-                      //     final touchedY = touchedSpot.y;
-                      //
-                      //     showModalBottomSheet(
-                      //       context: context,
-                      //       builder: (context) {
-                      //         return Container(
-                      //           padding: const EdgeInsets.all(16.0),
-                      //           decoration: BoxDecoration(
-                      //             color: Colors.white,
-                      //             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                      //           ),
-                      //           child: Column(
-                      //             mainAxisSize: MainAxisSize.min,
-                      //             children: [
-                      //               Text(
-                      //                 'Details',
-                      //                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      //               ),
-                      //               const SizedBox(height: 8),
-                      //               Text('Day: ${getDayLabel(touchedX)}'),
-                      //               Text('Value: ${touchedY.toStringAsFixed(2)}'),
-                      //             ],
-                      //           ),
-                      //         );
-                      //       },
-                      //     );
-                      //   }
-                      // },
                       touchTooltipData: LineTouchTooltipData(
                         tooltipRoundedRadius: 10,
                         getTooltipItems: (List<LineBarSpot> touchedSpots) {
@@ -332,14 +283,17 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                             type: RoundButtonType.bgGradient,
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
-                            onPressed: () {
-                              Navigator.push(
+                            onPressed: () async {
+                              final result = await Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                  const WorkoutScheduleView(),
-                                ),
+                                MaterialPageRoute(builder: (context) => WorkoutScheduleView()),
                               );
+
+                              if (result == true) {
+                                setState(() {
+                                  _loadClosestWorkoutSchedules();
+                                });
+                              }
                             },
                           ),
                         )

@@ -1,12 +1,11 @@
 import 'package:calendar_agenda/calendar_agenda.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fitness_workout_app/services/alarm.dart';
 import 'package:fitness_workout_app/view/sleep_tracker/sleep_add_alarm_view.dart';
-
 import 'package:flutter/material.dart';
-import 'package:simple_animation_progress_bar/simple_animation_progress_bar.dart';
-
 import '../../common/colo_extension.dart';
-import '../../common_widget/round_button.dart';
 import '../../common_widget/today_sleep_schedule_row.dart';
+import '../../model/alarm_model.dart';
 
 class SleepScheduleView extends StatefulWidget {
   const SleepScheduleView({super.key});
@@ -16,36 +15,48 @@ class SleepScheduleView extends StatefulWidget {
 }
 
 class _SleepScheduleViewState extends State<SleepScheduleView> {
-  CalendarAgendaController _calendarAgendaControllerAppBar =
-  CalendarAgendaController();
+  CalendarAgendaController _calendarAgendaControllerAppBar = CalendarAgendaController();
+  final AlarmService _alarmService = AlarmService();
   late DateTime _selectedDateAppBBar;
 
-  List todaySleepArr = [
-    {
-      "name": "Bedtime",
-      "image": "assets/img/bed.png",
-      "time": "01/06/2023 09:00 PM",
-      "duration": "in 6hours 22minutes"
-    },
-    {
-      "name": "Alarm",
-      "image": "assets/img/alaarm.png",
-      "time": "02/06/2023 05:10 AM",
-      "duration": "in 14hours 30minutes"
-    },
-  ];
-
+  List<AlarmSchedule> todaySleepArr = [];
   List<int> showingTooltipOnSpots = [4];
 
   @override
   void initState() {
     super.initState();
     _selectedDateAppBBar = DateTime.now();
+    _loadAlarmSchedules();
   }
+
+  void _loadAlarmSchedules() async {
+    List<AlarmSchedule> list = await _alarmService.fetchAlarmSchedules(
+        uid: FirebaseAuth.instance.currentUser!.uid);
+    setState(() {
+      todaySleepArr = list;
+    });
+  }
+
+  void _confirmDeleteSchedule(String Id) async {
+    String res = await _alarmService.deleteAlarmSchedule(alarmId: Id);
+    if (res == "success") {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Alarm schedule deleted successfully')));
+
+      _loadAlarmSchedules();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$res')),
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    var media = MediaQuery.of(context).size;
+    var media = MediaQuery
+        .of(context)
+        .size;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: TColor.white,
@@ -53,7 +64,7 @@ class _SleepScheduleViewState extends State<SleepScheduleView> {
         elevation: 0,
         leading: InkWell(
           onTap: () {
-            Navigator.pop(context);
+            Navigator.pop(context, true);
           },
           child: Container(
             margin: const EdgeInsets.all(8),
@@ -105,7 +116,7 @@ class _SleepScheduleViewState extends State<SleepScheduleView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(
-                                height: 15,
+                                height: 50,
                               ),
                               Text(
                                 "Ideal Hours for Sleep",
@@ -121,15 +132,6 @@ class _SleepScheduleViewState extends State<SleepScheduleView> {
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500),
                               ),
-                              const Spacer(),
-                              SizedBox(
-                                width: 110,
-                                height: 35,
-                                child: RoundButton(
-                                    title: "Learn More",
-                                    fontSize: 12,
-                                    onPressed: () {}),
-                              )
                             ]),
                         Image.asset(
                           "assets/img/sleep_schedule.png",
@@ -140,7 +142,7 @@ class _SleepScheduleViewState extends State<SleepScheduleView> {
                   ),
                 ),
                 SizedBox(
-                  height: media.width * 0.05,
+                  height: media.width * 0.02,
                 ),
                 Padding(
                   padding:
@@ -149,7 +151,7 @@ class _SleepScheduleViewState extends State<SleepScheduleView> {
                     "Your Schedule",
                     style: TextStyle(
                         color: TColor.black,
-                        fontSize: 16,
+                        fontSize: 17,
                         fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -204,20 +206,95 @@ class _SleepScheduleViewState extends State<SleepScheduleView> {
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: media.width * 0.03,
-                ),
-                ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                if (todaySleepArr.isEmpty) ...[
+                  SizedBox(
+                    height: media.width * 0.02,
+                  ),
+                  Padding(
+                    padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    child: Text(
+                      "You have not scheduled an alarm!",
+                      style: TextStyle(
+                          color: TColor.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
+                if (todaySleepArr.isNotEmpty) ...[
+                  SizedBox(
+                    height: media.width * 0.02,
+                  ),
+                  Padding(
+                    padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    child: Text(
+                      "Upcoming Alarm",
+                      style: TextStyle(
+                          color: TColor.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  SizedBox(
+                    height: media.width * 0.01,
+                  ),
+                  ListView.builder(
+                    padding: EdgeInsets.zero,
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                     itemCount: todaySleepArr.length,
                     itemBuilder: (context, index) {
-                      var sObj = todaySleepArr[index] as Map? ?? {};
-                      return TodaySleepScheduleRow(
-                        sObj: sObj,
+                      AlarmSchedule wObj = todaySleepArr[index];
+                      return Dismissible(
+                        key: Key(wObj.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          color: Colors.red,
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        confirmDismiss: (direction) async {
+                          // Hiển thị hộp thoại xác nhận trước khi xoá
+                          bool? confirm = await showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Confirm Delete'),
+                                content: Text(
+                                    'Are you sure you want to delete this alarm schedule?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                    child: Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                    child: Text('Delete'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          return confirm == true;
+                        },
+                        onDismissed: (direction) {
+                          _confirmDeleteSchedule(wObj.id);
+                        },
+                        child: TodaySleepScheduleRow(
+                          sObj: wObj,
+                          onRefresh: () {
+                            _loadAlarmSchedules();
+                          },
+                        ),
                       );
-                    }),
+                    },
+                  ),
+                ],
               ],
             ),
             SizedBox(
@@ -233,16 +310,17 @@ class _SleepScheduleViewState extends State<SleepScheduleView> {
           if (_selectedDateAppBBar.isBefore(startOfDay)) {
             return;
           }
-          final result = Navigator.push(
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => SleepAddAlarmView(
-                date: _selectedDateAppBBar,
-              ),
+              builder: (context) =>
+                  SleepAddAlarmView(
+                    date: _selectedDateAppBBar,
+                  ),
             ),
           );
           if (result == true) {
-            //_loadWorkOutSchedule();
+            _loadAlarmSchedules();
           }
         },
         child: Container(

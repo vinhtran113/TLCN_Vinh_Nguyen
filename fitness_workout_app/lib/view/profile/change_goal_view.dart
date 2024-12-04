@@ -29,29 +29,29 @@ class _ChangeGoalViewState extends State<ChangeGoalView> {
   List goalArr = [
     {
       "image": "assets/img/goal_1.png",
-      "title": "Improve Shape",
+      "title": "Weight Loss",
       "subtitle":
-      "I have a low amount of body fat\nand need / want to build more\nmuscle"
+      "I want to lose weight to improve \nmy health and have \na healthier body."
     },
     {
       "image": "assets/img/goal_2.png",
-      "title": "Lean & Tone",
+      "title": "Increase Fitness",
       "subtitle":
-      "I’m “skinny fat”. look thin but have\nno shape. I want to add learn\nmuscle in the right way"
+      "I want to combine weight loss with \nincreasing endurance and strength \nfor a more active lifestyle."
     },
     {
       "image": "assets/img/goal_3.png",
-      "title": "Lose a Fat",
+      "title": "Fat Loss & Toning",
       "subtitle":
-      "I have over 20 lbs to lose. I want to\ndrop all this fat and gain muscle\nmass"
+      "I want to focus on reducing fat,\nespecially in the abdominal area, \nand improving my body shape."
     },
   ];
 
   void _loadData() async {
     selectedGoal = widget.user.level;
     print('${widget.user.level}');
-    if(widget.user.level == "Lose a Fat"){currentIndex = 2;}
-    if(widget.user.level == "Lean & Tone"){currentIndex = 1;}
+    if(widget.user.level == "Fat Loss & Toning"){currentIndex = 2;}
+    if(widget.user.level == "Increase Fitness"){currentIndex = 1;}
     print('$currentIndex');
   }
 

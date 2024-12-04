@@ -722,8 +722,6 @@ class WorkoutService {
     int newTotalTime = previousTotalTime + duration;
     int newTotalCalo = previousTotalCalo + caloriesBurned;
 
-    // print('New calo: $newTotalCalo');
-    // print('New time: $newTotalTime');
 
     await FirebaseFirestore.instance
         .collection('WorkoutHistory')
@@ -908,6 +906,31 @@ class WorkoutService {
       'calories': calorieSpots,
       'duration': durationSpots,
     };
+  }
+
+  Future<int> calculateTodayCalories(String uid) async {
+    int totalCalories = 0;
+
+    // Lấy ngày hiện tại (định dạng 00:00:00 - 23:59:59)
+    DateTime now = DateTime.now();
+    DateTime startOfDay = DateTime(now.year, now.month, now.day);
+    DateTime endOfDay = startOfDay.add(const Duration(days: 1));
+
+    // Truy vấn Firestore
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('WorkoutHistory')
+        .where('uid', isEqualTo: uid) // Lọc theo uid
+        .where('completedAt', isGreaterThanOrEqualTo: startOfDay)
+        .where('completedAt', isLessThan: endOfDay)
+        .get();
+
+    // Tính tổng caloriesBurned
+    for (var doc in querySnapshot.docs) {
+      int calories = doc['caloriesBurned'] ?? 0;
+      totalCalories += calories;
+    }
+
+    return totalCalories;
   }
 }
 

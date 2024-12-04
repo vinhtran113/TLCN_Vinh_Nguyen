@@ -16,57 +16,29 @@ class WhatYourGoalView extends StatefulWidget {
 
 class _WhatYourGoalViewState extends State<WhatYourGoalView> {
   CarouselSliderController buttonCarouselController = CarouselSliderController();
-  String selectedGoal = "Improve Shape";
+  String selectedGoal = "Weight Loss";
   int currentIndex = 0;
 
   List goalArr = [
     {
       "image": "assets/img/goal_1.png",
-      "title": "Improve Shape",
+      "title": "Weight Loss",
       "subtitle":
-      "I have a low amount of body fat\nand need / want to build more\nmuscle"
+      "I want to lose weight to improve \nmy health and have \na healthier body."
     },
     {
       "image": "assets/img/goal_2.png",
-      "title": "Lean & Tone",
+      "title": "Increase Fitness",
       "subtitle":
-      "I’m “skinny fat”. look thin but have\nno shape. I want to add learn\nmuscle in the right way"
+      "I want to combine weight loss with \nincreasing endurance and strength \nfor a more active lifestyle."
     },
     {
       "image": "assets/img/goal_3.png",
-      "title": "Lose a Fat",
+      "title": "Fat Loss & Toning",
       "subtitle":
-      "I have over 20 lbs to lose. I want to\ndrop all this fat and gain muscle\nmass"
+      "I want to focus on reducing fat,\nespecially in the abdominal area, \nand improving my body shape."
     },
   ];
-
-  // void sentOTP() async {
-  //   try {
-  //     await AuthService().updateUserLevel(
-  //         FirebaseAuth.instance.currentUser!.uid, selectedGoal);
-  //     String res = await AuthService().sendOtpEmail(
-  //         FirebaseAuth.instance.currentUser!.uid);
-  //     if (res == "success") {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('OTP đã được gửi đến email của bạn')),
-  //       );
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (context) => const ActivateAccountView(),
-  //         ),
-  //       );
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text(res)),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('Lỗi xảy ra: $e')),
-  //     );
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {

@@ -117,12 +117,7 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
         elevation: 0,
         leading: InkWell(
           onTap: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const WorkoutTrackerView(),
-              ),
-            );
+            Navigator.pop(context,true);
           },
           child: Container(
             margin: const EdgeInsets.all(8),

@@ -231,6 +231,9 @@ class AuthService {
         gender.isEmpty || weight.isEmpty || height.isEmpty) {
       return "Vui lòng điền đầy đủ thông tin.";
     }
+    if(getAge(dateOfBirth) < 10){
+      return "Bạn phải đạt ít nhất 10 tuổi";
+    }
     if (double.tryParse(weight) == null || double.parse(weight) <= 30) {
       return "Cân nặng phải là số và lớn hơn 30.";
     }

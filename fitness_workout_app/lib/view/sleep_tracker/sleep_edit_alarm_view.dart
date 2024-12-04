@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fitness_workout_app/model/alarm_model.dart';
 import 'package:fitness_workout_app/services/alarm.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../common/colo_extension.dart';
 import '../../common/common.dart';
@@ -9,15 +11,15 @@ import '../../common_widget/icon_title_next_row.dart';
 import '../../common_widget/repetition_row.dart';
 import '../../common_widget/round_button.dart';
 
-class SleepAddAlarmView extends StatefulWidget {
-  final DateTime date;
-  const SleepAddAlarmView({super.key, required this.date});
+class SleepEditAlarmView extends StatefulWidget {
+  final AlarmSchedule schedule;
+  const SleepEditAlarmView({super.key, required this.schedule});
 
   @override
-  State<SleepAddAlarmView> createState() => _SleepAddAlarmViewState();
+  State<SleepEditAlarmView> createState() => _SleepEditAlarmViewState();
 }
 
-class _SleepAddAlarmViewState extends State<SleepAddAlarmView> {
+class _SleepEditAlarmViewState extends State<SleepEditAlarmView> {
   final AlarmService _alarmService = AlarmService();
   final TextEditingController selectedRepetition = TextEditingController();
   bool isBedEnabled = true;
@@ -26,12 +28,18 @@ class _SleepAddAlarmViewState extends State<SleepAddAlarmView> {
   String selectedTimeWakeup = "06:00 AM";
   bool isLoading = false;
   String day = "";
+  DateTime? parsedDay;
 
   @override
   void initState() {
     super.initState();
-    selectedRepetition.text = "no";
-    day = dateToString(widget.date, formatStr: "d/M/yyyy");
+    selectedRepetition.text = widget.schedule.repeatInterval;
+    day = widget.schedule.day;
+    parsedDay = DateFormat("d/M/yyyy").parse(widget.schedule.day);
+    selectedTimeBed = widget.schedule.hourBed;
+    selectedTimeWakeup = widget.schedule.hourWakeup;
+    isWakeupEnabled = widget.schedule.notifyWakeup;
+    isBedEnabled = widget.schedule.notifyBed;
   }
 
   @override
@@ -76,24 +84,25 @@ class _SleepAddAlarmViewState extends State<SleepAddAlarmView> {
     }
   }
 
-  void _handleAddAlarmSchedule() async {
+  void _handleUpdateSchedule() async {
     try {
       setState(() {
         isLoading = true;
       });
       String uid = FirebaseAuth.instance.currentUser!.uid;
-      String res = await _alarmService.addAlarmSchedule(
-        day: day,
-        hourWakeup: selectedTimeWakeup,
-        hourBed: selectedTimeBed,
-        notify_Bed: isBedEnabled,
-        notify_Wakeup: isWakeupEnabled,
-        repeatInterval: selectedRepetition.text.trim(),
-        uid: uid,);
-
+      String res = await _alarmService.updateAlarmSchedule(
+          id: widget.schedule.id,
+          day: day,
+          hourBed: selectedTimeBed,
+          hourWakeup: selectedTimeWakeup,
+          notify_Wakeup: isWakeupEnabled,
+          notify_Bed: isBedEnabled,
+          repeatInterval: selectedRepetition.text.trim(),
+          uid: uid,
+          id_notify: widget.schedule.idNotify);
       if (res == "success") {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Alarm schedule added successfully')));
+            SnackBar(content: Text('Alarm schedule updating successfully')));
         Navigator.pop(context, true);
         setState(() {
           isLoading = false;
@@ -144,7 +153,7 @@ class _SleepAddAlarmViewState extends State<SleepAddAlarmView> {
           ),
         ),
         title: Text(
-          "Add Alarm",
+          "Edit Alarm",
           style: TextStyle(
               color: TColor.black, fontSize: 16, fontWeight: FontWeight.w700),
         ),
@@ -170,7 +179,7 @@ class _SleepAddAlarmViewState extends State<SleepAddAlarmView> {
                     width: 12,
                   ),
                   Text(
-                    dateToString(widget.date, formatStr: "E, dd MMMM yyyy"),
+                    dateToString(parsedDay as DateTime, formatStr: "E, dd MMMM yyyy"),
                     style: TextStyle(color: TColor.gray, fontSize: 15),
                   ),
                 ],
@@ -250,7 +259,7 @@ class _SleepAddAlarmViewState extends State<SleepAddAlarmView> {
                 ],
               ),
               const Spacer(),
-              RoundButton(title: "Add", onPressed: _handleAddAlarmSchedule),
+              RoundButton(title: "Save", onPressed: _handleUpdateSchedule),
               const SizedBox(
                 height: 20,
               ),
